@@ -301,6 +301,7 @@ void BoneAttachment3D::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_TRANSFORM_CHANGED: {
+			on_skeleton_update();
 			_transform_changed();
 		} break;
 

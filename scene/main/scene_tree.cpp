@@ -1761,6 +1761,8 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_physics_interpolation_enabled", "enabled"), &SceneTree::set_physics_interpolation_enabled);
 	ClassDB::bind_method(D_METHOD("is_physics_interpolation_enabled"), &SceneTree::is_physics_interpolation_enabled);
 
+	ClassDB::bind_method(D_METHOD("flush_transform_notifications"), &SceneTree::flush_transform_notifications);
+
 	ClassDB::bind_method(D_METHOD("queue_delete", "obj"), &SceneTree::queue_delete);
 
 	MethodInfo mi;

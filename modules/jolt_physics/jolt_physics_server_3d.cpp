@@ -1646,7 +1646,11 @@ int JoltPhysicsServer3D::get_process_info(ProcessInfo p_process_info) {
 }
 
 int JoltPhysicsServer3D::space_get_last_process_info(RID p_space, ProcessInfo p_info) {
-	return 0;
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	if (p_info == INFO_ACTIVE_OBJECTS) {
+		space->get_physics_system().GetActiveBodiesUnsafe(JPH::EBodyType::RigidBody);
+	}
+	return space->get_physics_system().GetNumBodies();
 }
 
 void JoltPhysicsServer3D::free_space(JoltSpace3D *p_space) {
