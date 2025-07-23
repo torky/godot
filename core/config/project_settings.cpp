@@ -774,8 +774,7 @@ Error ProjectSettings::_load_settings_binary(const String &p_path) {
 		cs.resize(slen + 1);
 		cs[slen] = 0;
 		f->get_buffer((uint8_t *)cs.ptr(), slen);
-		String key;
-		key.append_utf8(cs.ptr(), slen);
+		String key = String::utf8(cs.ptr(), slen);
 
 		uint32_t vlen = f->get_32();
 		Vector<uint8_t> d;
@@ -1576,6 +1575,8 @@ ProjectSettings::ProjectSettings() {
 			String("Please include this when reporting the bug on: https://github.com/godotengine/godot/issues"));
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "rendering/occlusion_culling/bvh_build_quality", PROPERTY_HINT_ENUM, "Low,Medium,High"), 2);
 	GLOBAL_DEF_RST("rendering/occlusion_culling/jitter_projection", true);
+
+	GLOBAL_DEF_RST("memory/limits/rid/max_rid_allocate", 1048576);
 
 	GLOBAL_DEF_RST("internationalization/rendering/force_right_to_left_layout_direction", false);
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "internationalization/rendering/root_node_layout_direction", PROPERTY_HINT_ENUM, "Based on Application Locale,Left-to-Right,Right-to-Left,Based on System Locale"), 0);

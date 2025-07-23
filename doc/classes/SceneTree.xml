@@ -99,6 +99,11 @@
 				[b]Note:[/b] A [Tween] created using this method is not bound to any [Node]. It may keep working until there is nothing left to animate. If you want the [Tween] to be automatically killed when the [Node] is freed, use [method Node.create_tween] or [method Tween.bind_node].
 			</description>
 		</method>
+		<method name="flush_notifications">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
 		<method name="get_first_node_in_group">
 			<return type="Node" />
 			<param index="0" name="group" type="StringName" />

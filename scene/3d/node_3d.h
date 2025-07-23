@@ -94,6 +94,9 @@ private:
 	mutable SelfList<Node> xform_change;
 	SelfList<Node3D> _client_physics_interpolation_node_3d_list;
 
+	mutable int transform_update_count = 0;
+	mutable int transform_update_count_local = 0;
+	mutable int transform_update_count_get = 0;
 	// This Data struct is to avoid namespace pollution in derived classes.
 
 	struct Data {
@@ -176,6 +179,9 @@ protected:
 	bool _property_can_revert(const StringName &p_name) const;
 	bool _property_get_revert(const StringName &p_name, Variant &r_property) const;
 
+protected:
+	GDVIRTUAL0C(_transform_catch)
+
 public:
 	enum {
 		NOTIFICATION_TRANSFORM_CHANGED = SceneTree::NOTIFICATION_TRANSFORM_CHANGED,
@@ -222,6 +228,9 @@ public:
 	void set_global_transform(const Transform3D &p_transform);
 
 	Transform3D get_transform() const;
+	int get_transform_update_count() const { return transform_update_count; }
+	int get_transform_update_count_local() const { return transform_update_count_local; }
+	int get_transform_update_count_get() const { return transform_update_count_get; }
 	Basis get_basis() const;
 	Quaternion get_quaternion() const;
 	Transform3D get_global_transform() const;
