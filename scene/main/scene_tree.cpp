@@ -196,6 +196,12 @@ void SceneTree::make_group_changed(const StringName &p_group) {
 	}
 }
 
+void SceneTree::flush_notifications() {
+	_flush_ugc();
+	MessageQueue::get_singleton()->flush();
+	flush_transform_notifications();
+}
+
 void SceneTree::flush_transform_notifications() {
 	_THREAD_SAFE_METHOD_
 
@@ -1761,7 +1767,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_physics_interpolation_enabled", "enabled"), &SceneTree::set_physics_interpolation_enabled);
 	ClassDB::bind_method(D_METHOD("is_physics_interpolation_enabled"), &SceneTree::is_physics_interpolation_enabled);
 
-	ClassDB::bind_method(D_METHOD("flush_transform_notifications"), &SceneTree::flush_transform_notifications);
+	ClassDB::bind_method(D_METHOD("flush_notifications"), &SceneTree::flush_notifications);
 
 	ClassDB::bind_method(D_METHOD("queue_delete", "obj"), &SceneTree::queue_delete);
 

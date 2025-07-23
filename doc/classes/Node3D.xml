@@ -14,6 +14,11 @@
 		<link title="All 3D Demos">https://github.com/godotengine/godot-demo-projects/tree/master/3d</link>
 	</tutorials>
 	<methods>
+		<method name="_transform_catch" qualifiers="virtual const">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
 		<method name="add_gizmo">
 			<return type="void" />
 			<param index="0" name="gizmo" type="Node3DGizmo" />
@@ -60,6 +65,21 @@
 			<description>
 				Returns the parent [Node3D] that directly affects this node's [member global_transform]. Returns [code]null[/code] if no parent exists, the parent is not a [Node3D], or [member top_level] is [code]true[/code].
 				[b]Note:[/b] This method is not always equivalent to [method Node.get_parent], which does not take [member top_level] into account.
+			</description>
+		</method>
+		<method name="get_transform_update_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_transform_update_count_get" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_transform_update_count_local" qualifiers="const">
+			<return type="int" />
+			<description>
 			</description>
 		</method>
 		<method name="get_world_3d" qualifiers="const">
