@@ -35,6 +35,7 @@
 #include "thread.h"
 
 #ifdef THREADS_ENABLED
+#include "core/math/fp_deterministic.h"
 #include "core/object/script_language.h"
 
 SafeNumeric<uint64_t> Thread::id_counter(1); // The first value after .increment() is 2, hence by default the main thread ID should be 1.
@@ -51,6 +52,8 @@ void Thread::_set_platform_functions(const PlatformFunctions &p_functions) {
 #ifdef THREADS_ENABLED
 void Thread::callback(ID p_caller_id, const Settings &p_settings, Callback p_callback, void *p_userdata) {
 	Thread::caller_id = p_caller_id;
+	// Enable deterministic floating-point for this thread (DAZ/FTZ).
+	fp_deterministic_init();
 	if (platform_functions.set_priority) {
 		platform_functions.set_priority(p_settings.priority);
 	}

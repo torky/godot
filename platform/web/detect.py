@@ -319,6 +319,9 @@ def configure(env: "SConsEnvironment"):
     env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
     env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
 
+    # Disable FMA contraction for deterministic floating-point
+    env.Append(CCFLAGS=["-ffp-contract=off"])
+
     # Allow increasing memory buffer size during runtime. This is efficient
     # when using WebAssembly (in comparison to asm.js) and works well for
     # us since we don't know requirements at compile-time.

@@ -139,6 +139,9 @@ def configure(env: "SConsEnvironment"):
     # Temp fix for ABS/MAX/MIN macros in iOS SDK blocking compilation
     env.Append(CCFLAGS=["-Wno-ambiguous-macro"])
 
+    # Disable FMA contraction for deterministic floating-point
+    env.Append(CCFLAGS=["-ffp-contract=off"])
+
     env.Prepend(
         CPPPATH=[
             "$IOS_SDK_PATH/usr/include",

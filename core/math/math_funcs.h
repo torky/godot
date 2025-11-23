@@ -37,38 +37,41 @@
 #include <cfloat>
 #include <cmath>
 
-// Jolt deterministic math functions
+// Jolt deterministic math functions (float trig)
 #include "Jolt/Jolt.h"
 #include "Jolt/Math/Trigonometry.h"
+
+// Custom deterministic math functions (double trig, exp, log, hyperbolic)
+#include "core/math/fp_deterministic_math.h"
 
 namespace Math {
 
 _ALWAYS_INLINE_ double sin(double p_x) {
-	return std::sin(p_x);
+	return FPDeterministic::sin(p_x);
 }
 _ALWAYS_INLINE_ float sin(float p_x) {
 	return JPH::Sin(p_x);
 }
 
 _ALWAYS_INLINE_ double cos(double p_x) {
-	return std::cos(p_x);
+	return FPDeterministic::cos(p_x);
 }
 _ALWAYS_INLINE_ float cos(float p_x) {
 	return JPH::Cos(p_x);
 }
 
 _ALWAYS_INLINE_ double tan(double p_x) {
-	return std::tan(p_x);
+	return FPDeterministic::tan(p_x);
 }
 _ALWAYS_INLINE_ float tan(float p_x) {
 	return JPH::Tan(p_x);
 }
 
 _ALWAYS_INLINE_ double sinh(double p_x) {
-	return std::sinh(p_x);
+	return FPDeterministic::sinh(p_x);
 }
 _ALWAYS_INLINE_ float sinh(float p_x) {
-	return std::sinh(p_x);
+	return FPDeterministic::sinhf(p_x);
 }
 
 _ALWAYS_INLINE_ double sinc(double p_x) {
@@ -86,22 +89,22 @@ _ALWAYS_INLINE_ float sincn(float p_x) {
 }
 
 _ALWAYS_INLINE_ double cosh(double p_x) {
-	return std::cosh(p_x);
+	return FPDeterministic::cosh(p_x);
 }
 _ALWAYS_INLINE_ float cosh(float p_x) {
-	return std::cosh(p_x);
+	return FPDeterministic::coshf(p_x);
 }
 
 _ALWAYS_INLINE_ double tanh(double p_x) {
-	return std::tanh(p_x);
+	return FPDeterministic::tanh(p_x);
 }
 _ALWAYS_INLINE_ float tanh(float p_x) {
-	return std::tanh(p_x);
+	return FPDeterministic::tanhf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double asin(double p_x) {
-	return p_x < -1 ? (-PI / 2) : (p_x > 1 ? (PI / 2) : std::asin(p_x));
+	return FPDeterministic::asin(p_x);
 }
 _ALWAYS_INLINE_ float asin(float p_x) {
 	return JPH::ASin(p_x);
@@ -109,47 +112,47 @@ _ALWAYS_INLINE_ float asin(float p_x) {
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double acos(double p_x) {
-	return p_x < -1 ? PI : (p_x > 1 ? 0 : std::acos(p_x));
+	return FPDeterministic::acos(p_x);
 }
 _ALWAYS_INLINE_ float acos(float p_x) {
 	return JPH::ACos(p_x);
 }
 
 _ALWAYS_INLINE_ double atan(double p_x) {
-	return std::atan(p_x);
+	return FPDeterministic::atan(p_x);
 }
 _ALWAYS_INLINE_ float atan(float p_x) {
 	return JPH::ATan(p_x);
 }
 
 _ALWAYS_INLINE_ double atan2(double p_y, double p_x) {
-	return std::atan2(p_y, p_x);
+	return FPDeterministic::atan2(p_y, p_x);
 }
 _ALWAYS_INLINE_ float atan2(float p_y, float p_x) {
 	return JPH::ATan2(p_y, p_x);
 }
 
 _ALWAYS_INLINE_ double asinh(double p_x) {
-	return std::asinh(p_x);
+	return FPDeterministic::asinh(p_x);
 }
 _ALWAYS_INLINE_ float asinh(float p_x) {
-	return std::asinh(p_x);
+	return FPDeterministic::asinhf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double acosh(double p_x) {
-	return p_x < 1 ? 0 : std::acosh(p_x);
+	return FPDeterministic::acosh(p_x);
 }
 _ALWAYS_INLINE_ float acosh(float p_x) {
-	return p_x < 1 ? 0 : std::acosh(p_x);
+	return FPDeterministic::acoshf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double atanh(double p_x) {
-	return p_x <= -1 ? -INF : (p_x >= 1 ? INF : std::atanh(p_x));
+	return FPDeterministic::atanh(p_x);
 }
 _ALWAYS_INLINE_ float atanh(float p_x) {
-	return p_x <= -1 ? (float)-INF : (p_x >= 1 ? (float)INF : std::atanh(p_x));
+	return FPDeterministic::atanhf(p_x);
 }
 
 _ALWAYS_INLINE_ double sqrt(double p_x) {
@@ -188,38 +191,38 @@ _ALWAYS_INLINE_ float ceil(float p_x) {
 }
 
 _ALWAYS_INLINE_ double pow(double p_x, double p_y) {
-	return std::pow(p_x, p_y);
+	return FPDeterministic::pow(p_x, p_y);
 }
 _ALWAYS_INLINE_ float pow(float p_x, float p_y) {
-	return std::pow(p_x, p_y);
+	return FPDeterministic::powf(p_x, p_y);
 }
 
 _ALWAYS_INLINE_ double log(double p_x) {
-	return std::log(p_x);
+	return FPDeterministic::log(p_x);
 }
 _ALWAYS_INLINE_ float log(float p_x) {
-	return std::log(p_x);
+	return FPDeterministic::logf(p_x);
 }
 
 _ALWAYS_INLINE_ double log1p(double p_x) {
-	return std::log1p(p_x);
+	return FPDeterministic::log1p(p_x);
 }
 _ALWAYS_INLINE_ float log1p(float p_x) {
-	return std::log1p(p_x);
+	return FPDeterministic::log1pf(p_x);
 }
 
 _ALWAYS_INLINE_ double log2(double p_x) {
-	return std::log2(p_x);
+	return FPDeterministic::log2(p_x);
 }
 _ALWAYS_INLINE_ float log2(float p_x) {
-	return std::log2(p_x);
+	return FPDeterministic::log2f(p_x);
 }
 
 _ALWAYS_INLINE_ double exp(double p_x) {
-	return std::exp(p_x);
+	return FPDeterministic::exp(p_x);
 }
 _ALWAYS_INLINE_ float exp(float p_x) {
-	return std::exp(p_x);
+	return FPDeterministic::expf(p_x);
 }
 
 _ALWAYS_INLINE_ bool is_nan(double p_val) {
