@@ -37,27 +37,31 @@
 #include <cfloat>
 #include <cmath>
 
+// Jolt deterministic math functions
+#include "Jolt/Jolt.h"
+#include "Jolt/Math/Trigonometry.h"
+
 namespace Math {
 
 _ALWAYS_INLINE_ double sin(double p_x) {
 	return std::sin(p_x);
 }
 _ALWAYS_INLINE_ float sin(float p_x) {
-	return std::sin(p_x);
+	return JPH::Sin(p_x);
 }
 
 _ALWAYS_INLINE_ double cos(double p_x) {
 	return std::cos(p_x);
 }
 _ALWAYS_INLINE_ float cos(float p_x) {
-	return std::cos(p_x);
+	return JPH::Cos(p_x);
 }
 
 _ALWAYS_INLINE_ double tan(double p_x) {
 	return std::tan(p_x);
 }
 _ALWAYS_INLINE_ float tan(float p_x) {
-	return std::tan(p_x);
+	return JPH::Tan(p_x);
 }
 
 _ALWAYS_INLINE_ double sinh(double p_x) {
@@ -100,7 +104,7 @@ _ALWAYS_INLINE_ double asin(double p_x) {
 	return p_x < -1 ? (-PI / 2) : (p_x > 1 ? (PI / 2) : std::asin(p_x));
 }
 _ALWAYS_INLINE_ float asin(float p_x) {
-	return p_x < -1 ? (-(float)PI / 2) : (p_x > 1 ? ((float)PI / 2) : std::asin(p_x));
+	return JPH::ASin(p_x);
 }
 
 // Always does clamping so always safe to use.
@@ -108,21 +112,21 @@ _ALWAYS_INLINE_ double acos(double p_x) {
 	return p_x < -1 ? PI : (p_x > 1 ? 0 : std::acos(p_x));
 }
 _ALWAYS_INLINE_ float acos(float p_x) {
-	return p_x < -1 ? (float)PI : (p_x > 1 ? 0 : std::acos(p_x));
+	return JPH::ACos(p_x);
 }
 
 _ALWAYS_INLINE_ double atan(double p_x) {
 	return std::atan(p_x);
 }
 _ALWAYS_INLINE_ float atan(float p_x) {
-	return std::atan(p_x);
+	return JPH::ATan(p_x);
 }
 
 _ALWAYS_INLINE_ double atan2(double p_y, double p_x) {
 	return std::atan2(p_y, p_x);
 }
 _ALWAYS_INLINE_ float atan2(float p_y, float p_x) {
-	return std::atan2(p_y, p_x);
+	return JPH::ATan2(p_y, p_x);
 }
 
 _ALWAYS_INLINE_ double asinh(double p_x) {

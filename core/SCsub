@@ -13,6 +13,10 @@ env.core_sources = []
 
 # Add required thirdparty code.
 
+# Jolt Physics (for deterministic math functions)
+thirdparty_jolt_dir = "#thirdparty/jolt_physics/"
+env.Prepend(CPPEXTPATH=[thirdparty_jolt_dir])
+
 thirdparty_obj = []
 
 env_thirdparty = env.Clone()
