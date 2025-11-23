@@ -147,7 +147,6 @@ inline double cos(double x) {
 	int quadrant;
 	sincos_reduce(x, reduced, quadrant);
 
-	double sign = 1.0;
 	if (quadrant > 3) {
 		quadrant -= 4;
 	}
