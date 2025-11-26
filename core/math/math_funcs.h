@@ -38,37 +38,42 @@
 #include <cmath>
 
 // Jolt deterministic math functions (float trig)
+// Source: thirdparty/jolt_physics/Jolt/Math/Trigonometry.h
 #include "Jolt/Jolt.h"
 #include "Jolt/Math/Trigonometry.h"
+
+// SLEEF deterministic math functions (exp, log, hyperbolic)
+// Source: thirdparty/sleef/sleef_deterministic.h
+#include "thirdparty/sleef/sleef_deterministic.h"
 
 namespace Math {
 
 _ALWAYS_INLINE_ double sin(double p_x) {
-	return std::sin(p_x);
+	return JPH::Sin(p_x);
 }
 _ALWAYS_INLINE_ float sin(float p_x) {
 	return JPH::Sin(p_x);
 }
 
 _ALWAYS_INLINE_ double cos(double p_x) {
-	return std::cos(p_x);
+	return JPH::Cos(p_x);
 }
 _ALWAYS_INLINE_ float cos(float p_x) {
 	return JPH::Cos(p_x);
 }
 
 _ALWAYS_INLINE_ double tan(double p_x) {
-	return std::tan(p_x);
+	return JPH::Tan(p_x);
 }
 _ALWAYS_INLINE_ float tan(float p_x) {
 	return JPH::Tan(p_x);
 }
 
 _ALWAYS_INLINE_ double sinh(double p_x) {
-	return std::sinh(p_x);
+	return sleef_sinh(p_x);
 }
 _ALWAYS_INLINE_ float sinh(float p_x) {
-	return std::sinhf(p_x);
+	return sleef_sinhf(p_x);
 }
 
 _ALWAYS_INLINE_ double sinc(double p_x) {
@@ -86,22 +91,22 @@ _ALWAYS_INLINE_ float sincn(float p_x) {
 }
 
 _ALWAYS_INLINE_ double cosh(double p_x) {
-	return std::cosh(p_x);
+	return sleef_cosh(p_x);
 }
 _ALWAYS_INLINE_ float cosh(float p_x) {
-	return std::coshf(p_x);
+	return sleef_coshf(p_x);
 }
 
 _ALWAYS_INLINE_ double tanh(double p_x) {
-	return std::tanh(p_x);
+	return sleef_tanh(p_x);
 }
 _ALWAYS_INLINE_ float tanh(float p_x) {
-	return std::tanhf(p_x);
+	return sleef_tanhf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double asin(double p_x) {
-	return std::asin(p_x);
+	return JPH::ASin(p_x);
 }
 _ALWAYS_INLINE_ float asin(float p_x) {
 	return JPH::ASin(p_x);
@@ -109,47 +114,47 @@ _ALWAYS_INLINE_ float asin(float p_x) {
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double acos(double p_x) {
-	return std::acos(p_x);
+	return JPH::ACos(p_x);
 }
 _ALWAYS_INLINE_ float acos(float p_x) {
 	return JPH::ACos(p_x);
 }
 
 _ALWAYS_INLINE_ double atan(double p_x) {
-	return std::atan(p_x);
+	return JPH::ATan(p_x);
 }
 _ALWAYS_INLINE_ float atan(float p_x) {
 	return JPH::ATan(p_x);
 }
 
 _ALWAYS_INLINE_ double atan2(double p_y, double p_x) {
-	return std::atan2(p_y, p_x);
+	return JPH::ATan2(p_y, p_x);
 }
 _ALWAYS_INLINE_ float atan2(float p_y, float p_x) {
 	return JPH::ATan2(p_y, p_x);
 }
 
 _ALWAYS_INLINE_ double asinh(double p_x) {
-	return std::asinh(p_x);
+	return sleef_asinh(p_x);
 }
 _ALWAYS_INLINE_ float asinh(float p_x) {
-	return std::asinhf(p_x);
+	return sleef_asinhf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double acosh(double p_x) {
-	return std::acosh(p_x);
+	return sleef_acosh(p_x);
 }
 _ALWAYS_INLINE_ float acosh(float p_x) {
-	return std::acoshf(p_x);
+	return sleef_acoshf(p_x);
 }
 
 // Always does clamping so always safe to use.
 _ALWAYS_INLINE_ double atanh(double p_x) {
-	return std::atanh(p_x);
+	return sleef_atanh(p_x);
 }
 _ALWAYS_INLINE_ float atanh(float p_x) {
-	return std::atanhf(p_x);
+	return sleef_atanhf(p_x);
 }
 
 _ALWAYS_INLINE_ double sqrt(double p_x) {
@@ -195,10 +200,10 @@ _ALWAYS_INLINE_ float pow(float p_x, float p_y) {
 }
 
 _ALWAYS_INLINE_ double log(double p_x) {
-	return std::log(p_x);
+	return sleef_log(p_x);
 }
 _ALWAYS_INLINE_ float log(float p_x) {
-	return std::logf(p_x);
+	return sleef_logf(p_x);
 }
 
 _ALWAYS_INLINE_ double log1p(double p_x) {
@@ -216,10 +221,10 @@ _ALWAYS_INLINE_ float log2(float p_x) {
 }
 
 _ALWAYS_INLINE_ double exp(double p_x) {
-	return std::exp(p_x);
+	return sleef_exp(p_x);
 }
 _ALWAYS_INLINE_ float exp(float p_x) {
-	return std::expf(p_x);
+	return sleef_expf(p_x);
 }
 
 _ALWAYS_INLINE_ bool is_nan(double p_val) {

@@ -978,6 +978,19 @@ The SDL source code folder includes `hidapi` library inside of folder `thirdpart
 Its version and license is described in this file under `hidapi`.
 
 
+## sleef
+
+- Upstream: https://github.com/shibatch/sleef
+- Version: custom (based on SLEEF algorithms, 2025)
+- License: Boost Software License 1.0
+
+Files extracted from upstream source:
+
+- `sleef_deterministic.h` - Custom implementation of deterministic math functions
+  (exp, log, sinh, cosh, tanh, asinh, acosh, atanh) for cross-platform consistency
+- `LICENSE.txt`
+
+
 ## spirv-cross
 
 - Upstream: https://github.com/KhronosGroup/SPIRV-Cross

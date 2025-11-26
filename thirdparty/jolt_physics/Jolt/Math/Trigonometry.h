@@ -9,44 +9,61 @@ JPH_NAMESPACE_BEGIN
 // Note that this file exists because std::sin etc. are not platform independent and will lead to non-deterministic simulation
 
 /// Sine of x (input in radians)
-JPH_INLINE float Sin(float inX)
-{
+JPH_INLINE float Sin(float inX) {
+	Vec4 s, c;
+	Vec4::sReplicate(inX).SinCos(s, c);
+	return s.GetX();
+}
+
+JPH_INLINE double Sin(double inX) {
 	Vec4 s, c;
 	Vec4::sReplicate(inX).SinCos(s, c);
 	return s.GetX();
 }
 
 /// Cosine of x (input in radians)
-JPH_INLINE float Cos(float inX)
-{
+JPH_INLINE float Cos(float inX) {
+	Vec4 s, c;
+	Vec4::sReplicate(inX).SinCos(s, c);
+	return c.GetX();
+}
+
+/// Cosine of x (input in radians)
+JPH_INLINE double Cos(double inX) {
 	Vec4 s, c;
 	Vec4::sReplicate(inX).SinCos(s, c);
 	return c.GetX();
 }
 
 /// Tangent of x (input in radians)
-JPH_INLINE float Tan(float inX)
-{
+JPH_INLINE float Tan(float inX) {
+	return Vec4::sReplicate(inX).Tan().GetX();
+}
+
+JPH_INLINE double Tan(double inX) {
 	return Vec4::sReplicate(inX).Tan().GetX();
 }
 
 /// Arc sine of x (returns value in the range [-PI / 2, PI / 2])
 /// Note that all input values will be clamped to the range [-1, 1] and this function will not return NaNs like std::asin
-JPH_INLINE float ASin(float inX)
-{
+JPH_INLINE float ASin(float inX) {
+	return Vec4::sReplicate(inX).ASin().GetX();
+}
+JPH_INLINE double ASin(double inX) {
 	return Vec4::sReplicate(inX).ASin().GetX();
 }
 
 /// Arc cosine of x (returns value in the range [0, PI])
 /// Note that all input values will be clamped to the range [-1, 1] and this function will not return NaNs like std::acos
-JPH_INLINE float ACos(float inX)
-{
+JPH_INLINE float ACos(float inX) {
+	return Vec4::sReplicate(inX).ACos().GetX();
+}
+JPH_INLINE double ACos(double inX) {
 	return Vec4::sReplicate(inX).ACos().GetX();
 }
 
 /// An approximation of ACos, max error is 4.2e-3 over the entire range [-1, 1], is approximately 2.5x faster than ACos
-JPH_INLINE float ACosApproximate(float inX)
-{
+JPH_INLINE float ACosApproximate(float inX) {
 	// See: https://www.johndcook.com/blog/2022/09/06/inverse-cosine-near-1/
 	// See also: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 	// Taylor of cos(x) = 1 - x^2 / 2 + ...
@@ -61,18 +78,27 @@ JPH_INLINE float ACosApproximate(float inX)
 	float val = sqrt(1.0f - abs_x) * (JPH_PI / 2 - 0.175394f * abs_x);
 
 	// Our approximation is valid in the range [0, 1], extend it to the range [-1, 1]
-	return inX < 0? JPH_PI - val : val;
+	return inX < 0 ? JPH_PI - val : val;
+}
+JPH_INLINE double ACosApproximate(double inX) {
+	double abs_x = min(abs(inX), 1.0); // Ensure that we don't get a value larger than 1
+	double val = std::sqrt(1.0 - abs_x) * (3.14159265358979323846 / 2 - 0.175394 * abs_x);
+	return inX < 0 ? 3.14159265358979323846 - val : val;
 }
 
 /// Arc tangent of x (returns value in the range [-PI / 2, PI / 2])
-JPH_INLINE float ATan(float inX)
-{
+JPH_INLINE float ATan(float inX) {
+	return Vec4::sReplicate(inX).ATan().GetX();
+}
+JPH_INLINE double ATan(double inX) {
 	return Vec4::sReplicate(inX).ATan().GetX();
 }
 
 /// Arc tangent of y / x using the signs of the arguments to determine the correct quadrant (returns value in the range [-PI, PI])
-JPH_INLINE float ATan2(float inY, float inX)
-{
+JPH_INLINE float ATan2(float inY, float inX) {
+	return Vec4::sATan2(Vec4::sReplicate(inY), Vec4::sReplicate(inX)).GetX();
+}
+JPH_INLINE double ATan2(double inY, double inX) {
 	return Vec4::sATan2(Vec4::sReplicate(inY), Vec4::sReplicate(inX)).GetX();
 }
 
