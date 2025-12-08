@@ -46,6 +46,7 @@
 #include "core/object/method_bind.h"
 #include "core/os/os.h"
 #include "core/string/string_name.h"
+#include "core/math/math_funcs.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/file_system/editor_file_system.h"
@@ -1564,6 +1565,99 @@ void godotsharp_object_to_string(Object *p_ptr, godot_string *r_str) {
 			String("<" + p_ptr->get_class() + "#" + itos(p_ptr->get_instance_id()) + ">"));
 }
 
+// Deterministic Math (for cross-platform reproducibility)
+
+double godotsharp_deterministic_sin(double p_x) {
+	return Math::sin(p_x);
+}
+float godotsharp_deterministic_sinf(float p_x) {
+	return Math::sin(p_x);
+}
+
+double godotsharp_deterministic_cos(double p_x) {
+	return Math::cos(p_x);
+}
+float godotsharp_deterministic_cosf(float p_x) {
+	return Math::cos(p_x);
+}
+
+double godotsharp_deterministic_tan(double p_x) {
+	return Math::tan(p_x);
+}
+float godotsharp_deterministic_tanf(float p_x) {
+	return Math::tan(p_x);
+}
+
+double godotsharp_deterministic_asin(double p_x) {
+	return Math::asin(p_x);
+}
+float godotsharp_deterministic_asinf(float p_x) {
+	return Math::asin(p_x);
+}
+
+double godotsharp_deterministic_acos(double p_x) {
+	return Math::acos(p_x);
+}
+float godotsharp_deterministic_acosf(float p_x) {
+	return Math::acos(p_x);
+}
+
+double godotsharp_deterministic_atan(double p_x) {
+	return Math::atan(p_x);
+}
+float godotsharp_deterministic_atanf(float p_x) {
+	return Math::atan(p_x);
+}
+
+double godotsharp_deterministic_atan2(double p_y, double p_x) {
+	return Math::atan2(p_y, p_x);
+}
+float godotsharp_deterministic_atan2f(float p_y, float p_x) {
+	return Math::atan2(p_y, p_x);
+}
+
+double godotsharp_deterministic_sinh(double p_x) {
+	return Math::sinh(p_x);
+}
+float godotsharp_deterministic_sinhf(float p_x) {
+	return Math::sinh(p_x);
+}
+
+double godotsharp_deterministic_cosh(double p_x) {
+	return Math::cosh(p_x);
+}
+float godotsharp_deterministic_coshf(float p_x) {
+	return Math::cosh(p_x);
+}
+
+double godotsharp_deterministic_tanh(double p_x) {
+	return Math::tanh(p_x);
+}
+float godotsharp_deterministic_tanhf(float p_x) {
+	return Math::tanh(p_x);
+}
+
+double godotsharp_deterministic_asinh(double p_x) {
+	return Math::asinh(p_x);
+}
+float godotsharp_deterministic_asinhf(float p_x) {
+	return Math::asinh(p_x);
+}
+
+double godotsharp_deterministic_acosh(double p_x) {
+	return Math::acosh(p_x);
+}
+float godotsharp_deterministic_acoshf(float p_x) {
+	return Math::acosh(p_x);
+}
+
+double godotsharp_deterministic_atanh(double p_x) {
+	return Math::atanh(p_x);
+}
+float godotsharp_deterministic_atanhf(float p_x) {
+	return Math::atanh(p_x);
+}
+
 #ifdef __cplusplus
 }
 #endif
@@ -1796,6 +1890,33 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_var_to_str,
 	(void *)godotsharp_err_print_error,
 	(void *)godotsharp_object_to_string,
+	// Deterministic Math
+	(void *)godotsharp_deterministic_sin,
+	(void *)godotsharp_deterministic_sinf,
+	(void *)godotsharp_deterministic_cos,
+	(void *)godotsharp_deterministic_cosf,
+	(void *)godotsharp_deterministic_tan,
+	(void *)godotsharp_deterministic_tanf,
+	(void *)godotsharp_deterministic_asin,
+	(void *)godotsharp_deterministic_asinf,
+	(void *)godotsharp_deterministic_acos,
+	(void *)godotsharp_deterministic_acosf,
+	(void *)godotsharp_deterministic_atan,
+	(void *)godotsharp_deterministic_atanf,
+	(void *)godotsharp_deterministic_atan2,
+	(void *)godotsharp_deterministic_atan2f,
+	(void *)godotsharp_deterministic_sinh,
+	(void *)godotsharp_deterministic_sinhf,
+	(void *)godotsharp_deterministic_cosh,
+	(void *)godotsharp_deterministic_coshf,
+	(void *)godotsharp_deterministic_tanh,
+	(void *)godotsharp_deterministic_tanhf,
+	(void *)godotsharp_deterministic_asinh,
+	(void *)godotsharp_deterministic_asinhf,
+	(void *)godotsharp_deterministic_acosh,
+	(void *)godotsharp_deterministic_acoshf,
+	(void *)godotsharp_deterministic_atanh,
+	(void *)godotsharp_deterministic_atanhf,
 };
 
 const void **godotsharp::get_runtime_interop_funcs(int32_t &r_size) {

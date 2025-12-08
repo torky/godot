@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Godot.NativeInterop;
 
 namespace Godot
 {
@@ -1863,5 +1864,297 @@ namespace Godot
                 return value - Math.Floor(value);
             }
         }
+
+        #region Deterministic Math
+
+        /// <summary>
+        /// Returns the sine of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The sine of that angle.</returns>
+        public static double DeterministicSin(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_sin(s);
+        }
+
+        /// <summary>
+        /// Returns the sine of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The sine of that angle.</returns>
+        public static float DeterministicSin(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_sinf(s);
+        }
+
+        /// <summary>
+        /// Returns the cosine of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The cosine of that angle.</returns>
+        public static double DeterministicCos(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_cos(s);
+        }
+
+        /// <summary>
+        /// Returns the cosine of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The cosine of that angle.</returns>
+        public static float DeterministicCos(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_cosf(s);
+        }
+
+        /// <summary>
+        /// Returns the tangent of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The tangent of that angle.</returns>
+        public static double DeterministicTan(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_tan(s);
+        }
+
+        /// <summary>
+        /// Returns the tangent of angle <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The angle in radians.</param>
+        /// <returns>The tangent of that angle.</returns>
+        public static float DeterministicTan(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_tanf(s);
+        }
+
+        /// <summary>
+        /// Returns the arc sine of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc sine of that value.</returns>
+        public static double DeterministicAsin(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_asin(s);
+        }
+
+        /// <summary>
+        /// Returns the arc sine of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc sine of that value.</returns>
+        public static float DeterministicAsin(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_asinf(s);
+        }
+
+        /// <summary>
+        /// Returns the arc cosine of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc cosine of that value.</returns>
+        public static double DeterministicAcos(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_acos(s);
+        }
+
+        /// <summary>
+        /// Returns the arc cosine of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc cosine of that value.</returns>
+        public static float DeterministicAcos(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_acosf(s);
+        }
+
+        /// <summary>
+        /// Returns the arc tangent of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc tangent of that value.</returns>
+        public static double DeterministicAtan(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_atan(s);
+        }
+
+        /// <summary>
+        /// Returns the arc tangent of <paramref name="s"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The arc tangent of that value.</returns>
+        public static float DeterministicAtan(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_atanf(s);
+        }
+
+        /// <summary>
+        /// Returns the arc tangent of <paramref name="y"/> and <paramref name="x"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="y">The Y value.</param>
+        /// <param name="x">The X value.</param>
+        /// <returns>The arc tangent of y/x.</returns>
+        public static double DeterministicAtan2(double y, double x)
+        {
+            return NativeFuncs.godotsharp_deterministic_atan2(y, x);
+        }
+
+        /// <summary>
+        /// Returns the arc tangent of <paramref name="y"/> and <paramref name="x"/> in radians using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="y">The Y value.</param>
+        /// <param name="x">The X value.</param>
+        /// <returns>The arc tangent of y/x.</returns>
+        public static float DeterministicAtan2(float y, float x)
+        {
+            return NativeFuncs.godotsharp_deterministic_atan2f(y, x);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic sine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic sine of that value.</returns>
+        public static double DeterministicSinh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_sinh(s);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic sine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic sine of that value.</returns>
+        public static float DeterministicSinh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_sinhf(s);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic cosine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic cosine of that value.</returns>
+        public static double DeterministicCosh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_cosh(s);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic cosine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic cosine of that value.</returns>
+        public static float DeterministicCosh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_coshf(s);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic tangent of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic tangent of that value.</returns>
+        public static double DeterministicTanh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_tanh(s);
+        }
+
+        /// <summary>
+        /// Returns the hyperbolic tangent of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The hyperbolic tangent of that value.</returns>
+        public static float DeterministicTanh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_tanhf(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic sine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic sine of that value.</returns>
+        public static double DeterministicAsinh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_asinh(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic sine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic sine of that value.</returns>
+        public static float DeterministicAsinh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_asinhf(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic cosine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic cosine of that value.</returns>
+        public static double DeterministicAcosh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_acosh(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic cosine of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic cosine of that value.</returns>
+        public static float DeterministicAcosh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_acoshf(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic tangent of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic tangent of that value.</returns>
+        public static double DeterministicAtanh(double s)
+        {
+            return NativeFuncs.godotsharp_deterministic_atanh(s);
+        }
+
+        /// <summary>
+        /// Returns the inverse hyperbolic tangent of <paramref name="s"/> using deterministic math.
+        /// This function produces identical results across all platforms.
+        /// </summary>
+        /// <param name="s">The input value.</param>
+        /// <returns>The inverse hyperbolic tangent of that value.</returns>
+        public static float DeterministicAtanh(float s)
+        {
+            return NativeFuncs.godotsharp_deterministic_atanhf(s);
+        }
+
+        #endregion
     }
 }

@@ -772,6 +772,99 @@ int64_t VariantUtilityFunctions::nearest_po2(int64_t x) {
 	return nearest_power_of_2_templated(uint64_t(x));
 }
 
+// Deterministic Math (for cross-platform reproducibility)
+
+double VariantUtilityFunctions::deterministic_sin(double arg) {
+	return Math::sin(arg);
+}
+float VariantUtilityFunctions::deterministic_sinf(float arg) {
+	return Math::sin(arg);
+}
+
+double VariantUtilityFunctions::deterministic_cos(double arg) {
+	return Math::cos(arg);
+}
+float VariantUtilityFunctions::deterministic_cosf(float arg) {
+	return Math::cos(arg);
+}
+
+double VariantUtilityFunctions::deterministic_tan(double arg) {
+	return Math::tan(arg);
+}
+float VariantUtilityFunctions::deterministic_tanf(float arg) {
+	return Math::tan(arg);
+}
+
+double VariantUtilityFunctions::deterministic_asin(double arg) {
+	return Math::asin(arg);
+}
+float VariantUtilityFunctions::deterministic_asinf(float arg) {
+	return Math::asin(arg);
+}
+
+double VariantUtilityFunctions::deterministic_acos(double arg) {
+	return Math::acos(arg);
+}
+float VariantUtilityFunctions::deterministic_acosf(float arg) {
+	return Math::acos(arg);
+}
+
+double VariantUtilityFunctions::deterministic_atan(double arg) {
+	return Math::atan(arg);
+}
+float VariantUtilityFunctions::deterministic_atanf(float arg) {
+	return Math::atan(arg);
+}
+
+double VariantUtilityFunctions::deterministic_atan2(double y, double x) {
+	return Math::atan2(y, x);
+}
+float VariantUtilityFunctions::deterministic_atan2f(float y, float x) {
+	return Math::atan2(y, x);
+}
+
+double VariantUtilityFunctions::deterministic_sinh(double arg) {
+	return Math::sinh(arg);
+}
+float VariantUtilityFunctions::deterministic_sinhf(float arg) {
+	return Math::sinh(arg);
+}
+
+double VariantUtilityFunctions::deterministic_cosh(double arg) {
+	return Math::cosh(arg);
+}
+float VariantUtilityFunctions::deterministic_coshf(float arg) {
+	return Math::cosh(arg);
+}
+
+double VariantUtilityFunctions::deterministic_tanh(double arg) {
+	return Math::tanh(arg);
+}
+float VariantUtilityFunctions::deterministic_tanhf(float arg) {
+	return Math::tanh(arg);
+}
+
+double VariantUtilityFunctions::deterministic_asinh(double arg) {
+	return Math::asinh(arg);
+}
+float VariantUtilityFunctions::deterministic_asinhf(float arg) {
+	return Math::asinh(arg);
+}
+
+double VariantUtilityFunctions::deterministic_acosh(double arg) {
+	return Math::acosh(arg);
+}
+float VariantUtilityFunctions::deterministic_acoshf(float arg) {
+	return Math::acosh(arg);
+}
+
+double VariantUtilityFunctions::deterministic_atanh(double arg) {
+	return Math::atanh(arg);
+}
+float VariantUtilityFunctions::deterministic_atanhf(float arg) {
+	return Math::atanh(arg);
+}
+
 // Random
 
 void VariantUtilityFunctions::randomize() {
@@ -1731,6 +1824,34 @@ void Variant::_register_variant_utility_functions() {
 
 	FUNCBINDR(nearest_po2, sarray("value"), Variant::UTILITY_FUNC_TYPE_MATH);
 	FUNCBINDR(pingpong, sarray("value", "length"), Variant::UTILITY_FUNC_TYPE_MATH);
+
+	// Deterministic Math (for cross-platform reproducibility)
+	FUNCBINDR(deterministic_sin, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_sinf, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_cos, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_cosf, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_tan, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_tanf, sarray("angle_rad"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_asin, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_asinf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_acos, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_acosf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atan, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atanf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atan2, sarray("y", "x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atan2f, sarray("y", "x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_sinh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_sinhf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_cosh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_coshf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_tanh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_tanhf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_asinh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_asinhf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_acosh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_acoshf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atanh, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(deterministic_atanhf, sarray("x"), Variant::UTILITY_FUNC_TYPE_MATH);
 
 	// Random
 

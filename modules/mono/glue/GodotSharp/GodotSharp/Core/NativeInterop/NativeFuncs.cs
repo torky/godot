@@ -606,5 +606,34 @@ namespace Godot.NativeInterop
         // Object
 
         public static partial void godotsharp_object_to_string(IntPtr ptr, out godot_string r_str);
+
+        // Deterministic Math (for cross-platform reproducibility)
+
+        internal static partial double godotsharp_deterministic_sin(double angle_rad);
+        internal static partial float godotsharp_deterministic_sinf(float angle_rad);
+        internal static partial double godotsharp_deterministic_cos(double angle_rad);
+        internal static partial float godotsharp_deterministic_cosf(float angle_rad);
+        internal static partial double godotsharp_deterministic_tan(double angle_rad);
+        internal static partial float godotsharp_deterministic_tanf(float angle_rad);
+        internal static partial double godotsharp_deterministic_asin(double x);
+        internal static partial float godotsharp_deterministic_asinf(float x);
+        internal static partial double godotsharp_deterministic_acos(double x);
+        internal static partial float godotsharp_deterministic_acosf(float x);
+        internal static partial double godotsharp_deterministic_atan(double x);
+        internal static partial float godotsharp_deterministic_atanf(float x);
+        internal static partial double godotsharp_deterministic_atan2(double y, double x);
+        internal static partial float godotsharp_deterministic_atan2f(float y, float x);
+        internal static partial double godotsharp_deterministic_sinh(double x);
+        internal static partial float godotsharp_deterministic_sinhf(float x);
+        internal static partial double godotsharp_deterministic_cosh(double x);
+        internal static partial float godotsharp_deterministic_coshf(float x);
+        internal static partial double godotsharp_deterministic_tanh(double x);
+        internal static partial float godotsharp_deterministic_tanhf(float x);
+        internal static partial double godotsharp_deterministic_asinh(double x);
+        internal static partial float godotsharp_deterministic_asinhf(float x);
+        internal static partial double godotsharp_deterministic_acosh(double x);
+        internal static partial float godotsharp_deterministic_acoshf(float x);
+        internal static partial double godotsharp_deterministic_atanh(double x);
+        internal static partial float godotsharp_deterministic_atanhf(float x);
     }
 }
