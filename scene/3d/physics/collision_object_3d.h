@@ -170,6 +170,8 @@ public:
 	void set_capture_input_on_drag(bool p_capture);
 	bool get_capture_input_on_drag() const;
 
+	void sync_transform_to_physics();
+
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
 	PackedStringArray get_configuration_warnings() const override;

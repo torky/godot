@@ -448,6 +448,19 @@ void CollisionObject3D::_on_transform_changed() {
 	}
 }
 
+void CollisionObject3D::sync_transform_to_physics() {
+	ERR_THREAD_GUARD;
+	ERR_FAIL_COND(!is_inside_tree());
+
+	if (area) {
+		PhysicsServer3D::get_singleton()->area_set_transform(rid, get_global_transform());
+	} else {
+		PhysicsServer3D::get_singleton()->body_set_state(rid, PhysicsServer3D::BODY_STATE_TRANSFORM, get_global_transform());
+	}
+
+	_on_transform_changed();
+}
+
 void CollisionObject3D::set_ray_pickable(bool p_ray_pickable) {
 	ray_pickable = p_ray_pickable;
 	_update_pickable();
@@ -474,6 +487,7 @@ void CollisionObject3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_ray_pickable"), &CollisionObject3D::is_ray_pickable);
 	ClassDB::bind_method(D_METHOD("set_capture_input_on_drag", "enable"), &CollisionObject3D::set_capture_input_on_drag);
 	ClassDB::bind_method(D_METHOD("get_capture_input_on_drag"), &CollisionObject3D::get_capture_input_on_drag);
+	ClassDB::bind_method(D_METHOD("sync_transform_to_physics"), &CollisionObject3D::sync_transform_to_physics);
 	ClassDB::bind_method(D_METHOD("get_rid"), &CollisionObject3D::get_rid);
 	ClassDB::bind_method(D_METHOD("create_shape_owner", "owner"), &CollisionObject3D::create_shape_owner);
 	ClassDB::bind_method(D_METHOD("remove_shape_owner", "owner_id"), &CollisionObject3D::remove_shape_owner);
