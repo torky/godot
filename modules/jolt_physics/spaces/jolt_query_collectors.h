@@ -182,12 +182,23 @@ public:
 	virtual void AddHit(const Hit &p_hit) override {
 		const float early_out = p_hit.GetEarlyOutFraction();
 
-		if (!valid || early_out < hit.GetEarlyOutFraction()) {
+		if (!valid) {
+			// First hit - accept it
 			TBase::UpdateEarlyOutFraction(early_out);
-
 			hit = p_hit;
 			valid = true;
+		} else if (early_out < hit.GetEarlyOutFraction()) {
+			// Strictly closer - accept it
+			TBase::UpdateEarlyOutFraction(early_out);
+			hit = p_hit;
+		} else if (early_out == hit.GetEarlyOutFraction()) {
+			// Tie - use BodyID as secondary sort key for determinism (lower BodyID wins)
+			if (p_hit.mBodyID.GetIndexAndSequenceNumber() < hit.mBodyID.GetIndexAndSequenceNumber()) {
+				hit = p_hit;
+				// Don't update early_out - it's already correct
+			}
 		}
+		// else: further away, ignore
 	}
 };
 
@@ -229,10 +240,18 @@ public:
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
+		const float new_fraction = p_hit.GetEarlyOutFraction();
 		typename HitArray::const_iterator E = hits.cbegin();
 		for (; E != hits.cend(); ++E) {
-			if (p_hit.GetEarlyOutFraction() < E->GetEarlyOutFraction()) {
+			const float existing_fraction = E->GetEarlyOutFraction();
+			if (new_fraction < existing_fraction) {
+				// Strictly closer - insert before
 				break;
+			} else if (new_fraction == existing_fraction) {
+				// Tie - use BodyID as secondary sort key for determinism (lower BodyID first)
+				if (p_hit.mBodyID.GetIndexAndSequenceNumber() < E->mBodyID.GetIndexAndSequenceNumber()) {
+					break;
+				}
 			}
 		}
 

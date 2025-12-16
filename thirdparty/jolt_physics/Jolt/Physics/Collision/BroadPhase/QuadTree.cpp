@@ -1106,7 +1106,7 @@ void QuadTree::CastRay(const RayCast &inRay, RayCastBodyCollector &ioCollector, 
 		/// Returns true if this node / body should be visited, false if no hit can be generated
 		JPH_INLINE bool			ShouldVisitNode(int inStackTop) const
 		{
-			return mFractionStack[inStackTop] < mCollector.GetEarlyOutFraction();
+			return mFractionStack[inStackTop] <= mCollector.GetEarlyOutFraction();
 		}
 
 		/// Visit nodes, returns number of hits found and sorts ioChildNodeIDs so that they are at the beginning of the vector.
@@ -1391,7 +1391,7 @@ void QuadTree::CastAABox(const AABoxCast &inBox, CastShapeBodyCollector &ioColle
 		/// Returns true if this node / body should be visited, false if no hit can be generated
 		JPH_INLINE bool				ShouldVisitNode(int inStackTop) const
 		{
-			return mFractionStack[inStackTop] < mCollector.GetPositiveEarlyOutFraction();
+			return mFractionStack[inStackTop] <= mCollector.GetPositiveEarlyOutFraction();
 		}
 
 		/// Visit nodes, returns number of hits found and sorts ioChildNodeIDs so that they are at the beginning of the vector.
