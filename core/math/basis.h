@@ -333,10 +333,20 @@ Vector3 Basis::xform(const Vector3 &p_vector) const {
 }
 
 Vector3 Basis::xform_inv(const Vector3 &p_vector) const {
-	return Vector3(
-			(rows[0][0] * p_vector.x) + (rows[1][0] * p_vector.y) + (rows[2][0] * p_vector.z),
-			(rows[0][1] * p_vector.x) + (rows[1][1] * p_vector.y) + (rows[2][1] * p_vector.z),
-			(rows[0][2] * p_vector.x) + (rows[1][2] * p_vector.y) + (rows[2][2] * p_vector.z));
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t x = rows[0][0] * p_vector.x;
+	x += rows[1][0] * p_vector.y;
+	x += rows[2][0] * p_vector.z;
+
+	real_t y = rows[0][1] * p_vector.x;
+	y += rows[1][1] * p_vector.y;
+	y += rows[2][1] * p_vector.z;
+
+	real_t z = rows[0][2] * p_vector.x;
+	z += rows[1][2] * p_vector.y;
+	z += rows[2][2] * p_vector.z;
+
+	return Vector3(x, y, z);
 }
 
 real_t Basis::determinant() const {

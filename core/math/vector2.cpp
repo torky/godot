@@ -46,7 +46,10 @@ real_t Vector2::length() const {
 }
 
 real_t Vector2::length_squared() const {
-	return x * x + y * y;
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t len = x * x;
+	len += y * y;
+	return len;
 }
 
 void Vector2::normalize() {
@@ -86,7 +89,10 @@ real_t Vector2::angle_to_point(const Vector2 &p_vector2) const {
 }
 
 real_t Vector2::dot(const Vector2 &p_other) const {
-	return x * p_other.x + y * p_other.y;
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t dot = x * p_other.x;
+	dot += y * p_other.y;
+	return dot;
 }
 
 real_t Vector2::cross(const Vector2 &p_other) const {

@@ -176,10 +176,20 @@ _FORCE_INLINE_ Vector3 Transform3D::xform(const Vector3 &p_vector) const {
 _FORCE_INLINE_ Vector3 Transform3D::xform_inv(const Vector3 &p_vector) const {
 	Vector3 v = p_vector - origin;
 
-	return Vector3(
-			(basis.rows[0][0] * v.x) + (basis.rows[1][0] * v.y) + (basis.rows[2][0] * v.z),
-			(basis.rows[0][1] * v.x) + (basis.rows[1][1] * v.y) + (basis.rows[2][1] * v.z),
-			(basis.rows[0][2] * v.x) + (basis.rows[1][2] * v.y) + (basis.rows[2][2] * v.z));
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t x = basis.rows[0][0] * v.x;
+	x += basis.rows[1][0] * v.y;
+	x += basis.rows[2][0] * v.z;
+
+	real_t y = basis.rows[0][1] * v.x;
+	y += basis.rows[1][1] * v.y;
+	y += basis.rows[2][1] * v.z;
+
+	real_t z = basis.rows[0][2] * v.x;
+	z += basis.rows[1][2] * v.y;
+	z += basis.rows[2][2] * v.z;
+
+	return Vector3(x, y, z);
 }
 
 // Neither the plane regular xform or xform_inv are particularly efficient,

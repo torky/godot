@@ -205,7 +205,11 @@ Vector3 Vector3::cross(const Vector3 &p_with) const {
 }
 
 real_t Vector3::dot(const Vector3 &p_with) const {
-	return x * p_with.x + y * p_with.y + z * p_with.z;
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t dot = x * p_with.x;
+	dot += y * p_with.y;
+	dot += z * p_with.z;
+	return dot;
 }
 
 Vector3 Vector3::abs() const {
@@ -493,11 +497,11 @@ real_t Vector3::length() const {
 }
 
 real_t Vector3::length_squared() const {
-	real_t x2 = x * x;
-	real_t y2 = y * y;
-	real_t z2 = z * z;
-
-	return x2 + y2 + z2;
+	// Accumulator pattern for cross-platform deterministic results.
+	real_t len = x * x;
+	len += y * y;
+	len += z * z;
+	return len;
 }
 
 void Vector3::normalize() {
