@@ -35,9 +35,36 @@
 
 #include "Jolt/Jolt.h"
 
+#include <type_traits>
+
 #include "Jolt/Core/STLLocalAllocator.h"
 #include "Jolt/Physics/Collision/InternalEdgeRemovingCollector.h"
 #include "Jolt/Physics/Collision/Shape/Shape.h"
+
+// Type traits to detect body ID members for deterministic tie-breaking
+template <typename T, typename = void>
+struct has_mBodyID : std::false_type {};
+
+template <typename T>
+struct has_mBodyID<T, std::void_t<decltype(std::declval<T>().mBodyID)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct has_mBodyID2 : std::false_type {};
+
+template <typename T>
+struct has_mBodyID2<T, std::void_t<decltype(std::declval<T>().mBodyID2)>> : std::true_type {};
+
+// Helper to extract a sortable body ID from any hit type
+template <typename Hit>
+inline uint64_t GetHitBodySortKey(const Hit &hit) {
+	if constexpr (has_mBodyID<Hit>::value) {
+		return hit.mBodyID.GetIndexAndSequenceNumber();
+	} else if constexpr (has_mBodyID2<Hit>::value) {
+		return hit.mBodyID2.GetIndexAndSequenceNumber();
+	} else {
+		return 0; // No tie-breaking available
+	}
+}
 
 template <typename TBase, int TDefaultCapacity>
 class JoltQueryCollectorAll final : public TBase {
@@ -193,7 +220,7 @@ public:
 			hit = p_hit;
 		} else if (early_out == hit.GetEarlyOutFraction()) {
 			// Tie - use BodyID as secondary sort key for determinism (lower BodyID wins)
-			if (p_hit.mBodyID.GetIndexAndSequenceNumber() < hit.mBodyID.GetIndexAndSequenceNumber()) {
+			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
 				hit = p_hit;
 				// Don't update early_out - it's already correct
 			}
@@ -249,7 +276,7 @@ public:
 				break;
 			} else if (new_fraction == existing_fraction) {
 				// Tie - use BodyID as secondary sort key for determinism (lower BodyID first)
-				if (p_hit.mBodyID.GetIndexAndSequenceNumber() < E->mBodyID.GetIndexAndSequenceNumber()) {
+				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
 					break;
 				}
 			}
