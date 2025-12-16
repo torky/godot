@@ -35,11 +35,13 @@
 
 #include "Jolt/Jolt.h"
 
+#include <cmath>
 #include <type_traits>
 
 #include "Jolt/Core/STLLocalAllocator.h"
 #include "Jolt/Physics/Collision/InternalEdgeRemovingCollector.h"
 #include "Jolt/Physics/Collision/Shape/Shape.h"
+#include "Jolt/Physics/PhysicsSettings.h"
 
 // Type traits to detect body ID members for deterministic tie-breaking
 template <typename T, typename = void>
@@ -64,6 +66,13 @@ inline uint64_t GetHitBodySortKey(const Hit &hit) {
 	} else {
 		return 0; // No tie-breaking available
 	}
+}
+
+// Check if two fractions are close enough to be considered equal for determinism
+// Uses Jolt's collision tolerance (1e-4f) as the threshold
+inline bool AreFractionsEqual(float a, float b) {
+	const float diff = std::abs(a - b);
+	return diff <= JPH::cDefaultCollisionTolerance;
 }
 
 template <typename TBase, int TDefaultCapacity>
@@ -208,22 +217,26 @@ public:
 
 	virtual void AddHit(const Hit &p_hit) override {
 		const float early_out = p_hit.GetEarlyOutFraction();
+		const float current_fraction = hit.GetEarlyOutFraction();
 
 		if (!valid) {
 			// First hit - accept it
 			TBase::UpdateEarlyOutFraction(early_out);
 			hit = p_hit;
 			valid = true;
-		} else if (early_out < hit.GetEarlyOutFraction()) {
+		} else if (AreFractionsEqual(early_out, current_fraction)) {
+			// Tie (within epsilon) - use BodyID as secondary sort key for determinism (lower BodyID wins)
+			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
+				hit = p_hit;
+				// Update early_out to use the smaller fraction for consistency
+				if (early_out < current_fraction) {
+					TBase::UpdateEarlyOutFraction(early_out);
+				}
+			}
+		} else if (early_out < current_fraction) {
 			// Strictly closer - accept it
 			TBase::UpdateEarlyOutFraction(early_out);
 			hit = p_hit;
-		} else if (early_out == hit.GetEarlyOutFraction()) {
-			// Tie - use BodyID as secondary sort key for determinism (lower BodyID wins)
-			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
-				hit = p_hit;
-				// Don't update early_out - it's already correct
-			}
 		}
 		// else: further away, ignore
 	}
@@ -271,14 +284,14 @@ public:
 		typename HitArray::const_iterator E = hits.cbegin();
 		for (; E != hits.cend(); ++E) {
 			const float existing_fraction = E->GetEarlyOutFraction();
-			if (new_fraction < existing_fraction) {
-				// Strictly closer - insert before
-				break;
-			} else if (new_fraction == existing_fraction) {
-				// Tie - use BodyID as secondary sort key for determinism (lower BodyID first)
+			if (AreFractionsEqual(new_fraction, existing_fraction)) {
+				// Tie (within epsilon) - use BodyID as secondary sort key for determinism (lower BodyID first)
 				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
 					break;
 				}
+			} else if (new_fraction < existing_fraction) {
+				// Strictly closer - insert before
+				break;
 			}
 		}
 
