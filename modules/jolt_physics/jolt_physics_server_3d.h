@@ -414,6 +414,8 @@ public:
 	virtual void joint_disable_collisions_between_bodies(RID p_joint, bool p_disable) override;
 	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const override;
 
+	virtual int collision_object_get_internal_index(RID p_object) const override;
+
 	virtual void free(RID p_rid) override;
 
 	virtual void set_active(bool p_active) override;

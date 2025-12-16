@@ -809,6 +809,8 @@ public:
 
 	/* MISC */
 
+	virtual int collision_object_get_internal_index(RID p_object) const { return -1; } // Returns physics engine internal index for body/area/soft_body, -1 if not supported or invalid RID
+
 	virtual void free(RID p_rid) = 0;
 
 	virtual void set_active(bool p_active) = 0;

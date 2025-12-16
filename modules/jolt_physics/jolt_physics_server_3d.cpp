@@ -1606,6 +1606,26 @@ bool JoltPhysicsServer3D::joint_is_disabled_collisions_between_bodies(RID p_join
 	return joint->is_collision_disabled();
 }
 
+int JoltPhysicsServer3D::collision_object_get_internal_index(RID p_object) const {
+	if (const JoltBody3D *body = body_owner.get_or_null(p_object)) {
+		if (body->get_jolt_body() == nullptr) {
+			return -1;
+		}
+		return body->get_jolt_id().GetIndex();
+	} else if (const JoltArea3D *area = area_owner.get_or_null(p_object)) {
+		if (area->get_jolt_body() == nullptr) {
+			return -1;
+		}
+		return area->get_jolt_id().GetIndex();
+	} else if (const JoltSoftBody3D *soft_body = soft_body_owner.get_or_null(p_object)) {
+		if (soft_body->get_jolt_body() == nullptr) {
+			return -1;
+		}
+		return soft_body->get_jolt_id().GetIndex();
+	}
+	return -1;
+}
+
 void JoltPhysicsServer3D::free(RID p_rid) {
 	if (JoltShape3D *shape = shape_owner.get_or_null(p_rid)) {
 		free_shape(shape);
