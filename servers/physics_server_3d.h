@@ -163,10 +163,7 @@ public:
 		Object *collider = nullptr;
 		int shape = 0;
 		int face_index = -1;
-		// Debug fields for raycast determinism debugging
 		real_t fraction = 0.0f;
-		int internal_body_index = -1;
-		int tie_count = 0;
 		int total_hits_considered = 0;
 	};
 

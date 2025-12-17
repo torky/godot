@@ -43,7 +43,6 @@
 #include "Jolt/Physics/Collision/Shape/Shape.h"
 #include "Jolt/Physics/PhysicsSettings.h"
 
-// Type traits to detect body ID members for deterministic tie-breaking
 template <typename T, typename = void>
 struct has_mBodyID : std::false_type {};
 
@@ -56,7 +55,6 @@ struct has_mBodyID2 : std::false_type {};
 template <typename T>
 struct has_mBodyID2<T, std::void_t<decltype(std::declval<T>().mBodyID2)>> : std::true_type {};
 
-// Helper to extract a sortable body ID from any hit type
 template <typename Hit>
 inline uint64_t GetHitBodySortKey(const Hit &hit) {
 	if constexpr (has_mBodyID<Hit>::value) {
@@ -64,12 +62,10 @@ inline uint64_t GetHitBodySortKey(const Hit &hit) {
 	} else if constexpr (has_mBodyID2<Hit>::value) {
 		return hit.mBodyID2.GetIndexAndSequenceNumber();
 	} else {
-		return 0; // No tie-breaking available
+		return 0;
 	}
 }
 
-// Check if two fractions are close enough to be considered equal for determinism
-// Uses Jolt's collision tolerance (1e-4f) as the threshold
 inline bool AreFractionsEqual(float a, float b) {
 	const float diff = std::abs(a - b);
 	return diff <= JPH::cDefaultCollisionTolerance;
@@ -200,8 +196,6 @@ public:
 private:
 	Hit hit;
 	bool valid = false;
-	// Debug: track tie-breaking info
-	int tie_count = 0;
 	int total_hits_considered = 0;
 
 public:
@@ -209,7 +203,6 @@ public:
 
 	const Hit &get_hit() const { return hit; }
 
-	int get_tie_count() const { return tie_count; }
 	int get_total_hits_considered() const { return total_hits_considered; }
 
 	void reset() {
@@ -219,7 +212,6 @@ public:
 	virtual void Reset() override {
 		TBase::Reset();
 		valid = false;
-		tie_count = 0;
 		total_hits_considered = 0;
 	}
 
@@ -229,26 +221,20 @@ public:
 		const float current_fraction = hit.GetEarlyOutFraction();
 
 		if (!valid) {
-			// First hit - accept it
 			TBase::UpdateEarlyOutFraction(early_out);
 			hit = p_hit;
 			valid = true;
 		} else if (AreFractionsEqual(early_out, current_fraction)) {
-			// Tie (within epsilon) - use BodyID as secondary sort key for determinism (lower BodyID wins)
-			tie_count++;
 			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
 				hit = p_hit;
-				// Update early_out to use the smaller fraction for consistency
 				if (early_out < current_fraction) {
 					TBase::UpdateEarlyOutFraction(early_out);
 				}
 			}
 		} else if (early_out < current_fraction) {
-			// Strictly closer - accept it
 			TBase::UpdateEarlyOutFraction(early_out);
 			hit = p_hit;
 		}
-		// else: further away, ignore
 	}
 };
 
@@ -295,12 +281,10 @@ public:
 		for (; E != hits.cend(); ++E) {
 			const float existing_fraction = E->GetEarlyOutFraction();
 			if (AreFractionsEqual(new_fraction, existing_fraction)) {
-				// Tie (within epsilon) - use BodyID as secondary sort key for determinism (lower BodyID first)
 				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
 					break;
 				}
 			} else if (new_fraction < existing_fraction) {
-				// Strictly closer - insert before
 				break;
 			}
 		}

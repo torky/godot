@@ -45,10 +45,7 @@ class RayCast3D : public Node3D {
 	Vector3 collision_point;
 	Vector3 collision_normal;
 	int collision_face_index = -1;
-	// Debug fields for raycast determinism debugging
 	real_t collision_fraction = 0.0f;
-	int collision_internal_body_index = -1;
-	int collision_tie_count = 0;
 	int collision_total_hits_considered = 0;
 
 	Vector3 target_position = Vector3(0, -1, 0);
@@ -131,8 +128,6 @@ public:
 	Vector3 get_collision_normal() const;
 	int get_collision_face_index() const;
 	real_t get_collision_fraction() const;
-	int get_collision_internal_body_index() const;
-	int get_collision_tie_count() const;
 	int get_collision_total_hits_considered() const;
 
 	void add_exception_rid(const RID &p_rid);

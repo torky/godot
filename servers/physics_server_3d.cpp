@@ -382,7 +382,6 @@ Dictionary PhysicsDirectSpaceState3D::_intersect_ray(const Ref<PhysicsRayQueryPa
 	d["shape"] = result.shape;
 	d["rid"] = result.rid;
 	d["fraction"] = result.fraction;
-	d["internal_body_index"] = result.internal_body_index;
 
 	return d;
 }
