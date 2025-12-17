@@ -166,6 +166,8 @@ public:
 		// Debug fields for raycast determinism debugging
 		real_t fraction = 0.0f;
 		int internal_body_index = -1;
+		int tie_count = 0;
+		int total_hits_considered = 0;
 	};
 
 	virtual bool intersect_ray(const RayParameters &p_parameters, RayResult &r_result) = 0;

@@ -115,6 +115,14 @@ int RayCast3D::get_collision_internal_body_index() const {
 	return collision_internal_body_index;
 }
 
+int RayCast3D::get_collision_tie_count() const {
+	return collision_tie_count;
+}
+
+int RayCast3D::get_collision_total_hits_considered() const {
+	return collision_total_hits_considered;
+}
+
 void RayCast3D::set_enabled(bool p_enabled) {
 	enabled = p_enabled;
 	update_gizmos();
@@ -258,6 +266,8 @@ void RayCast3D::_update_raycast_state() {
 		against_shape = rr.shape;
 		collision_fraction = rr.fraction;
 		collision_internal_body_index = rr.internal_body_index;
+		collision_tie_count = rr.tie_count;
+		collision_total_hits_considered = rr.total_hits_considered;
 	} else {
 		collided = false;
 		against = ObjectID();
@@ -265,6 +275,8 @@ void RayCast3D::_update_raycast_state() {
 		against_shape = 0;
 		collision_fraction = 0.0f;
 		collision_internal_body_index = -1;
+		collision_tie_count = 0;
+		collision_total_hits_considered = 0;
 	}
 }
 
@@ -351,6 +363,8 @@ void RayCast3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_collision_face_index"), &RayCast3D::get_collision_face_index);
 	ClassDB::bind_method(D_METHOD("get_collision_fraction"), &RayCast3D::get_collision_fraction);
 	ClassDB::bind_method(D_METHOD("get_collision_internal_body_index"), &RayCast3D::get_collision_internal_body_index);
+	ClassDB::bind_method(D_METHOD("get_collision_tie_count"), &RayCast3D::get_collision_tie_count);
+	ClassDB::bind_method(D_METHOD("get_collision_total_hits_considered"), &RayCast3D::get_collision_total_hits_considered);
 
 	ClassDB::bind_method(D_METHOD("add_exception_rid", "rid"), &RayCast3D::add_exception_rid);
 	ClassDB::bind_method(D_METHOD("add_exception", "node"), &RayCast3D::add_exception);

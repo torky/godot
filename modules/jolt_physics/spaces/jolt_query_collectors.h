@@ -200,11 +200,17 @@ public:
 private:
 	Hit hit;
 	bool valid = false;
+	// Debug: track tie-breaking info
+	int tie_count = 0;
+	int total_hits_considered = 0;
 
 public:
 	bool had_hit() const { return valid; }
 
 	const Hit &get_hit() const { return hit; }
+
+	int get_tie_count() const { return tie_count; }
+	int get_total_hits_considered() const { return total_hits_considered; }
 
 	void reset() {
 		Reset();
@@ -213,9 +219,12 @@ public:
 	virtual void Reset() override {
 		TBase::Reset();
 		valid = false;
+		tie_count = 0;
+		total_hits_considered = 0;
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
+		total_hits_considered++;
 		const float early_out = p_hit.GetEarlyOutFraction();
 		const float current_fraction = hit.GetEarlyOutFraction();
 
@@ -226,6 +235,7 @@ public:
 			valid = true;
 		} else if (AreFractionsEqual(early_out, current_fraction)) {
 			// Tie (within epsilon) - use BodyID as secondary sort key for determinism (lower BodyID wins)
+			tie_count++;
 			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
 				hit = p_hit;
 				// Update early_out to use the smaller fraction for consistency

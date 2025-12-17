@@ -515,6 +515,8 @@ bool JoltPhysicsDirectSpaceState3D::intersect_ray(const RayParameters &p_paramet
 	r_result.shape = 0;
 	r_result.fraction = hit.mFraction;
 	r_result.internal_body_index = body_id.GetIndex();
+	r_result.tie_count = collector.get_tie_count();
+	r_result.total_hits_considered = collector.get_total_hits_considered();
 
 	if (const JoltShapedObject3D *shaped_object = object->as_shaped()) {
 		const int shape_index = shaped_object->find_shape_index(sub_shape_id);
