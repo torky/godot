@@ -241,7 +241,7 @@ void SphereShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCast
 	int num_results = RaySphere(inRay.mOrigin, inRay.mDirection, Vec3::sZero(), mRadius, min_fraction, max_fraction);
 	if (num_results > 0 // Ray should intersect
 		&& max_fraction >= 0.0f // End of ray should be inside sphere
-		&& min_fraction < ioCollector.GetEarlyOutFraction()) // Start of ray should be before early out fraction
+		&& min_fraction <= ioCollector.GetEarlyOutFraction()) // Start of ray should be before or at early out fraction (for determinism)
 	{
 		// Better hit than the current hit
 		RayCastResult hit;
@@ -258,7 +258,7 @@ void SphereShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCast
 		// Check back side hit
 		if (inRayCastSettings.mBackFaceModeConvex == EBackFaceMode::CollideWithBackFaces
 			&& num_results > 1 // Ray should have 2 intersections
-			&& max_fraction < ioCollector.GetEarlyOutFraction()) // End of ray should be before early out fraction
+			&& max_fraction <= ioCollector.GetEarlyOutFraction()) // End of ray should be before or at early out fraction (for determinism)
 		{
 			hit.mFraction = max_fraction;
 			ioCollector.AddHit(hit);

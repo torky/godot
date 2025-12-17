@@ -777,7 +777,7 @@ void MeshShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCastSe
 
 		JPH_INLINE bool		ShouldVisitNode(int inStackTop) const
 		{
-			return mDistanceStack[inStackTop] < mCollector.GetEarlyOutFraction();
+			return mDistanceStack[inStackTop] <= mCollector.GetEarlyOutFraction(); // Use <= for determinism
 		}
 
 		JPH_INLINE int		VisitNodes(Vec4Arg inBoundsMinX, Vec4Arg inBoundsMinY, Vec4Arg inBoundsMinZ, Vec4Arg inBoundsMaxX, Vec4Arg inBoundsMaxY, Vec4Arg inBoundsMaxZ, UVec4 &ioProperties, int inStackTop)
@@ -797,7 +797,7 @@ void MeshShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCastSe
 
 			// Check the triangle
 			float fraction = RayTriangle(mRayOrigin, mRayDirection, inV0, inV1, inV2);
-			if (fraction < mCollector.GetEarlyOutFraction())
+			if (fraction <= mCollector.GetEarlyOutFraction()) // Use <= for determinism
 			{
 				RayCastResult hit;
 				hit.mBodyID = TransformedShape::sGetBodyID(mCollector.GetContext());

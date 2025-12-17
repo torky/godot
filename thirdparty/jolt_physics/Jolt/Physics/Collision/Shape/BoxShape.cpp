@@ -191,7 +191,7 @@ void BoxShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCastSet
 	RayAABox(inRay.mOrigin, RayInvDirection(inRay.mDirection), -mHalfExtent, mHalfExtent, min_fraction, max_fraction);
 	if (min_fraction <= max_fraction // Ray should intersect
 		&& max_fraction >= 0.0f // End of ray should be inside box
-		&& min_fraction < ioCollector.GetEarlyOutFraction()) // Start of ray should be before early out fraction
+		&& min_fraction <= ioCollector.GetEarlyOutFraction()) // Start of ray should be before or at early out fraction (for determinism)
 	{
 		// Better hit than the current hit
 		RayCastResult hit;
@@ -207,7 +207,7 @@ void BoxShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCastSet
 
 		// Check back side hit
 		if (inRayCastSettings.mBackFaceModeConvex == EBackFaceMode::CollideWithBackFaces
-			&& max_fraction < ioCollector.GetEarlyOutFraction())
+			&& max_fraction <= ioCollector.GetEarlyOutFraction())
 		{
 			hit.mFraction = max_fraction;
 			ioCollector.AddHit(hit);

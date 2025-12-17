@@ -222,7 +222,7 @@ void PlaneShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCastS
 	{
 		// Calculate hit with plane
 		float fraction = -distance / dot;
-		if (fraction >= 0.0f && fraction < ioCollector.GetEarlyOutFraction())
+		if (fraction >= 0.0f && fraction <= ioCollector.GetEarlyOutFraction()) // Use <= for determinism
 		{
 			RayCastResult hit;
 			hit.mBodyID = TransformedShape::sGetBodyID(ioCollector.GetContext());
