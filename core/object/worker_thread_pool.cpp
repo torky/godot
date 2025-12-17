@@ -35,6 +35,34 @@
 #include "core/os/safe_binary_mutex.h"
 #include "core/os/thread_safe.h"
 
+// FPU state setup for determinism (flush denormals to zero)
+#if defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_X64) || defined(_M_AMD64)
+#include <pmmintrin.h>
+#include <xmmintrin.h>
+#define GODOT_FP_MODE_SSE2
+#elif defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM64)
+#define GODOT_FP_MODE_ARM64
+#elif defined(__arm__) || defined(_M_ARM)
+#define GODOT_FP_MODE_ARM32
+#endif
+
+static void setup_fpu_state() {
+#if defined(GODOT_FP_MODE_SSE2)
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#elif defined(GODOT_FP_MODE_ARM64)
+	uint64_t fpcr;
+	__asm__ __volatile__("mrs %0, fpcr" : "=r"(fpcr));
+	fpcr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("msr fpcr, %0" : : "r"(fpcr));
+#elif defined(GODOT_FP_MODE_ARM32)
+	uint32_t fpscr;
+	__asm__ __volatile__("vmrs %0, fpscr" : "=r"(fpscr));
+	fpscr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("vmsr fpscr, %0" : : "r"(fpscr));
+#endif
+}
+
 WorkerThreadPool::Task *const WorkerThreadPool::ThreadData::YIELDING = (Task *)1;
 
 HashMap<StringName, WorkerThreadPool *> WorkerThreadPool::named_pools;
@@ -182,6 +210,8 @@ void WorkerThreadPool::_process_task(Task *p_task) {
 }
 
 void WorkerThreadPool::_thread_function(void *p_user) {
+	setup_fpu_state();
+
 	ThreadData *thread_data = (ThreadData *)p_user;
 	Thread::set_name(vformat("WorkerThread %d", thread_data->index));
 

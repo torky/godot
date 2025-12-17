@@ -47,8 +47,29 @@
 #if defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_X64) || defined(_M_AMD64)
 #include <xmmintrin.h>
 #include <pmmintrin.h>
-#define JOLT_HAS_SSE2
+#define JOLT_FP_MODE_SSE2
+#elif defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM64)
+#define JOLT_FP_MODE_ARM64
+#elif defined(__arm__) || defined(_M_ARM)
+#define JOLT_FP_MODE_ARM32
 #endif
+
+inline void jolt_setup_fpu_state() {
+#if defined(JOLT_FP_MODE_SSE2)
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#elif defined(JOLT_FP_MODE_ARM64)
+	uint64_t fpcr;
+	__asm__ __volatile__("mrs %0, fpcr" : "=r"(fpcr));
+	fpcr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("msr fpcr, %0" : : "r"(fpcr));
+#elif defined(JOLT_FP_MODE_ARM32)
+	uint32_t fpscr;
+	__asm__ __volatile__("vmrs %0, fpscr" : "=r"(fpscr));
+	fpscr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("vmsr fpscr, %0" : : "r"(fpscr));
+#endif
+}
 
 void *jolt_alloc(size_t p_size) {
 	return Memory::alloc_static(p_size);
@@ -89,10 +110,7 @@ bool jolt_assert(const char *p_expr, const char *p_msg, const char *p_file, uint
 #endif
 
 void jolt_initialize() {
-#ifdef JOLT_HAS_SSE2
-	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-#endif
+	jolt_setup_fpu_state();
 
 	JPH::Allocate = &jolt_alloc;
 	JPH::Reallocate = &jolt_realloc;
