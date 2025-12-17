@@ -39,8 +39,19 @@
 
 #include "Jolt/Physics/PhysicsSettings.h"
 
+#if defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_X64) || defined(_M_AMD64)
+#include <xmmintrin.h>
+#include <pmmintrin.h>
+#define JOLT_HAS_SSE2
+#endif
+
 void JoltJobSystem::Job::_execute(void *p_user_data) {
 	Job *job = static_cast<Job *>(p_user_data);
+
+#ifdef JOLT_HAS_SSE2
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#endif
 
 #ifdef DEBUG_ENABLED
 	const uint64_t time_start = Time::get_singleton()->get_ticks_usec();
