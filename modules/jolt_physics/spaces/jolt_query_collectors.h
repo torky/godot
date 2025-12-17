@@ -35,13 +35,11 @@
 
 #include "Jolt/Jolt.h"
 
-#include <cmath>
 #include <type_traits>
 
 #include "Jolt/Core/STLLocalAllocator.h"
 #include "Jolt/Physics/Collision/InternalEdgeRemovingCollector.h"
 #include "Jolt/Physics/Collision/Shape/Shape.h"
-#include "Jolt/Physics/PhysicsSettings.h"
 
 template <typename T, typename = void>
 struct has_mBodyID : std::false_type {};
@@ -64,11 +62,6 @@ inline uint64_t GetHitBodySortKey(const Hit &hit) {
 	} else {
 		return 0;
 	}
-}
-
-inline bool AreFractionsEqual(float a, float b) {
-	const float diff = std::abs(a - b);
-	return diff <= JPH::cDefaultCollisionTolerance;
 }
 
 template <typename TBase, int TDefaultCapacity>
@@ -224,12 +217,9 @@ public:
 			TBase::UpdateEarlyOutFraction(early_out);
 			hit = p_hit;
 			valid = true;
-		} else if (AreFractionsEqual(early_out, current_fraction)) {
+		} else if (early_out == current_fraction) {
 			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
 				hit = p_hit;
-				if (early_out < current_fraction) {
-					TBase::UpdateEarlyOutFraction(early_out);
-				}
 			}
 		} else if (early_out < current_fraction) {
 			TBase::UpdateEarlyOutFraction(early_out);
@@ -280,7 +270,7 @@ public:
 		typename HitArray::const_iterator E = hits.cbegin();
 		for (; E != hits.cend(); ++E) {
 			const float existing_fraction = E->GetEarlyOutFraction();
-			if (AreFractionsEqual(new_fraction, existing_fraction)) {
+			if (new_fraction == existing_fraction) {
 				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
 					break;
 				}
