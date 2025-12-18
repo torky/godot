@@ -404,10 +404,11 @@ void Skeleton3D::_notification(int p_what) {
 			}
 
 			if (!modifiers.is_empty()) {
-				// Cache modified global poses before restoring.
-				modified_bone_global_poses.resize(bones.size());
+				// Cache modified local poses before restoring.
+				modified_bone_local_poses.resize(bones.size());
 				for (uint32_t i = 0; i < bones.size(); i++) {
-					modified_bone_global_poses[i] = bonesptr[i].global_pose;
+					bonesptr[i].update_pose_cache();
+					modified_bone_local_poses[i] = bonesptr[i].pose_cache;
 				}
 
 				// Restore unmodified bone poses.
@@ -579,11 +580,27 @@ Transform3D Skeleton3D::get_bone_global_pose(int p_bone) const {
 Transform3D Skeleton3D::get_bone_global_pose_modified(int p_bone) const {
 	const int bone_size = bones.size();
 	ERR_FAIL_INDEX_V(p_bone, bone_size, Transform3D());
-	if (p_bone < (int)modified_bone_global_poses.size()) {
-		return modified_bone_global_poses[p_bone];
+
+	if (p_bone >= (int)modified_bone_local_poses.size()) {
+		_update_bone_global_pose(p_bone);
+		return bones[p_bone].global_pose;
 	}
-	_update_bone_global_pose(p_bone);
-	return bones[p_bone].global_pose;
+
+	// Build chain from bone to root.
+	thread_local LocalVector<int> bone_chain;
+	bone_chain.clear();
+	for (int bone = p_bone; bone >= 0; bone = bones[bone].parent) {
+		bone_chain.push_back(bone);
+	}
+
+	// Compute global pose by walking from root to bone.
+	Transform3D global_pose;
+	for (int i = bone_chain.size() - 1; i >= 0; i--) {
+		int bone_idx = bone_chain[i];
+		global_pose *= modified_bone_local_poses[bone_idx];
+	}
+
+	return global_pose;
 }
 
 void Skeleton3D::set_bone_global_pose(int p_bone, const Transform3D &p_pose) {
@@ -1060,6 +1077,43 @@ void Skeleton3D::force_update_deferred() {
 	_make_dirty();
 }
 
+void Skeleton3D::force_update_bone_transforms_with_modifiers(double p_delta) {
+	force_update_all_dirty_bones();
+
+	_find_modifiers();
+	if (modifiers.is_empty()) {
+		modified_bone_local_poses.resize(bones.size());
+		for (uint32_t i = 0; i < bones.size(); i++) {
+			bones[i].update_pose_cache();
+			modified_bone_local_poses[i] = bones[i].pose_cache;
+		}
+		return;
+	}
+
+	LocalVector<BonePoseBackup> bones_backup;
+	bones_backup.resize(bones.size());
+	for (uint32_t i = 0; i < bones.size(); i++) {
+		bones_backup[i].save(bones[i]);
+	}
+	LocalVector<bool> bone_global_pose_dirty_backup = bone_global_pose_dirty;
+
+	double saved_delta = update_delta;
+	update_delta = p_delta;
+	_process_modifiers();
+	update_delta = saved_delta;
+
+	modified_bone_local_poses.resize(bones.size());
+	for (uint32_t i = 0; i < bones.size(); i++) {
+		bones[i].update_pose_cache();
+		modified_bone_local_poses[i] = bones[i].pose_cache;
+	}
+
+	for (uint32_t i = 0; i < bones.size(); i++) {
+		bones_backup[i].restore(bones[i]);
+	}
+	bone_global_pose_dirty = bone_global_pose_dirty_backup;
+}
+
 void Skeleton3D::force_update_all_dirty_bones() {
 	_force_update_all_dirty_bones();
 }
@@ -1295,6 +1349,7 @@ void Skeleton3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("force_update_all_bone_transforms"), &Skeleton3D::force_update_all_bone_transforms);
 	ClassDB::bind_method(D_METHOD("force_update_bone_child_transform", "bone_idx"), &Skeleton3D::force_update_bone_children_transforms);
+	ClassDB::bind_method(D_METHOD("force_update_bone_transforms_with_modifiers", "delta"), &Skeleton3D::force_update_bone_transforms_with_modifiers, DEFVAL(0.0));
 
 	ClassDB::bind_method(D_METHOD("set_motion_scale", "motion_scale"), &Skeleton3D::set_motion_scale);
 	ClassDB::bind_method(D_METHOD("get_motion_scale"), &Skeleton3D::get_motion_scale);
