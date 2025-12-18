@@ -404,6 +404,12 @@ void Skeleton3D::_notification(int p_what) {
 			}
 
 			if (!modifiers.is_empty()) {
+				// Cache modified global poses before restoring.
+				modified_bone_global_poses.resize(bones.size());
+				for (uint32_t i = 0; i < bones.size(); i++) {
+					modified_bone_global_poses[i] = bonesptr[i].global_pose;
+				}
+
 				// Restore unmodified bone poses.
 				for (uint32_t i = 0; i < bones.size(); i++) {
 					bones_backup[i].restore(bones[i]);
@@ -566,6 +572,16 @@ void Skeleton3D::_update_bone_global_pose(int p_bone) const {
 Transform3D Skeleton3D::get_bone_global_pose(int p_bone) const {
 	const int bone_size = bones.size();
 	ERR_FAIL_INDEX_V(p_bone, bone_size, Transform3D());
+	_update_bone_global_pose(p_bone);
+	return bones[p_bone].global_pose;
+}
+
+Transform3D Skeleton3D::get_bone_global_pose_modified(int p_bone) const {
+	const int bone_size = bones.size();
+	ERR_FAIL_INDEX_V(p_bone, bone_size, Transform3D());
+	if (p_bone < (int)modified_bone_global_poses.size()) {
+		return modified_bone_global_poses[p_bone];
+	}
 	_update_bone_global_pose(p_bone);
 	return bones[p_bone].global_pose;
 }
@@ -1274,6 +1290,7 @@ void Skeleton3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bone_enabled", "bone_idx", "enabled"), &Skeleton3D::set_bone_enabled, DEFVAL(true));
 
 	ClassDB::bind_method(D_METHOD("get_bone_global_pose", "bone_idx"), &Skeleton3D::get_bone_global_pose);
+	ClassDB::bind_method(D_METHOD("get_bone_global_pose_modified", "bone_idx"), &Skeleton3D::get_bone_global_pose_modified);
 	ClassDB::bind_method(D_METHOD("set_bone_global_pose", "bone_idx", "pose"), &Skeleton3D::set_bone_global_pose);
 
 	ClassDB::bind_method(D_METHOD("force_update_all_bone_transforms"), &Skeleton3D::force_update_all_bone_transforms);
