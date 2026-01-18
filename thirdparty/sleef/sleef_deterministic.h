@@ -24,6 +24,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <float.h>
+#include <math.h>
+
+#ifdef _MSC_VER
+#define sleef_sqrt(x) sqrt(x)
+#define sleef_sqrtf(x) sqrtf(x)
+#else
+#define sleef_sqrt(x) __builtin_sqrt(x)
+#define sleef_sqrtf(x) __builtin_sqrtf(x)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -562,10 +571,10 @@ static inline double sleef_asinh(double x) {
 		w = sleef_log(x < 0 ? -x : x) + sleef_ln2_hi;
 	} else if (ix > 0x40000000) { /* 2 < |x| < 2^28 */
 		t = x < 0 ? -x : x;
-		w = sleef_log(2.0 * t + 1.0 / (t + __builtin_sqrt(t * t + 1.0)));
+		w = sleef_log(2.0 * t + 1.0 / (t + sleef_sqrt(t * t + 1.0)));
 	} else { /* 2^-28 <= |x| <= 2 */
 		t = x * x;
-		w = sleef_log(1.0 + (x < 0 ? -x : x) + t / (1.0 + __builtin_sqrt(1.0 + t)));
+		w = sleef_log(1.0 + (x < 0 ? -x : x) + t / (1.0 + sleef_sqrt(1.0 + t)));
 	}
 	return (hx > 0) ? w : -w;
 }
@@ -587,10 +596,10 @@ static inline double sleef_acosh(double x) {
 		return 0.0; /* acosh(1) = 0 */
 	} else if (hx > 0x40000000) { /* 2 < x < 2^28 */
 		t = x * x;
-		return sleef_log(2.0 * x - 1.0 / (x + __builtin_sqrt(t - 1.0)));
+		return sleef_log(2.0 * x - 1.0 / (x + sleef_sqrt(t - 1.0)));
 	} else { /* 1 < x <= 2 */
 		t = x - 1.0;
-		return sleef_log(1.0 + t + __builtin_sqrt(2.0 * t + t * t));
+		return sleef_log(1.0 + t + sleef_sqrt(2.0 * t + t * t));
 	}
 }
 
@@ -725,10 +734,10 @@ static inline float sleef_asinhf(float x) {
 		w = sleef_logf(x < 0 ? -x : x) + 0.693147180559945309417232121458176568f;
 	} else if (ix > 0x40000000) {
 		t = x < 0 ? -x : x;
-		w = sleef_logf(2.0f * t + 1.0f / (t + __builtin_sqrtf(t * t + 1.0f)));
+		w = sleef_logf(2.0f * t + 1.0f / (t + sleef_sqrtf(t * t + 1.0f)));
 	} else {
 		t = x * x;
-		w = sleef_logf(1.0f + (x < 0 ? -x : x) + t / (1.0f + __builtin_sqrtf(1.0f + t)));
+		w = sleef_logf(1.0f + (x < 0 ? -x : x) + t / (1.0f + sleef_sqrtf(1.0f + t)));
 	}
 	return (hx > 0) ? w : -w;
 }
@@ -748,10 +757,10 @@ static inline float sleef_acoshf(float x) {
 		return 0.0f;
 	} else if (hx > 0x40000000) {
 		t = x * x;
-		return sleef_logf(2.0f * x - 1.0f / (x + __builtin_sqrtf(t - 1.0f)));
+		return sleef_logf(2.0f * x - 1.0f / (x + sleef_sqrtf(t - 1.0f)));
 	} else {
 		t = x - 1.0f;
-		return sleef_logf(1.0f + t + __builtin_sqrtf(2.0f * t + t * t));
+		return sleef_logf(1.0f + t + sleef_sqrtf(2.0f * t + t * t));
 	}
 }
 
