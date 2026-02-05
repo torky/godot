@@ -31,6 +31,7 @@
 #include "os_windows.h"
 
 #include "core/math/fp_deterministic.h"
+#include "core/profiling/profiling.h"
 #include "main/main.h"
 
 #include <clocale>
@@ -68,6 +69,7 @@ char *wc_to_utf8(const wchar_t *wc) {
 
 int widechar_main(int argc, wchar_t **argv) {
 	fp_deterministic_init();
+	godot_init_profiler();
 
 	OS_Windows os(nullptr);
 
@@ -107,6 +109,7 @@ int widechar_main(int argc, wchar_t **argv) {
 	}
 	delete[] argv_utf8;
 
+	godot_cleanup_profiler();
 	return os.get_exit_code();
 }
 
