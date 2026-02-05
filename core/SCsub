@@ -15,7 +15,7 @@ env.core_sources = []
 
 # Jolt Physics (for deterministic math functions)
 thirdparty_jolt_dir = "#thirdparty/jolt_physics/"
-env.Prepend(CPPEXTPATH=[thirdparty_jolt_dir])
+env.Prepend(CPPPATH=[thirdparty_jolt_dir])
 env.Append(CPPDEFINES=["JPH_CROSS_PLATFORM_DETERMINISTIC"])
 if env["precision"] == "double":
     env.Append(CPPDEFINES=["JPH_DOUBLE_PRECISION"])
