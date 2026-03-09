@@ -233,6 +233,12 @@ void JoltPhysicsServer3D::space_flush_queries(RID p_space) {
 	flushing_queries = false;
 }
 
+void JoltPhysicsServer3D::space_flush_pending_objects(RID p_space) {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL(space);
+	space->flush_pending_objects();
+}
+
 void JoltPhysicsServer3D::space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) {
 	JoltSpace3D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL(space);

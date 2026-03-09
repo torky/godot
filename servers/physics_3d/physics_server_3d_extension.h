@@ -240,6 +240,7 @@ public:
 	EXBIND1RC(bool, space_is_active, RID)
 	EXBIND2(space_step, RID, real_t)
 	EXBIND1(space_flush_queries, RID)
+	EXBIND1(space_flush_pending_objects, RID)
 
 	EXBIND3(space_set_param, RID, SpaceParameter, real_t)
 	EXBIND2RC(real_t, space_get_param, RID, SpaceParameter)
