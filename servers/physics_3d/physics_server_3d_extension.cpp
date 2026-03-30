@@ -442,6 +442,9 @@ void PhysicsServer3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_is_flushing_queries);
 	GDVIRTUAL_BIND(_get_process_info, "process_info");
 	GDVIRTUAL_BIND(_space_get_last_process_info, "space", "process_info");
+
+	GDVIRTUAL_BIND(_space_get_body_checksum, "space");
+	GDVIRTUAL_BIND(_space_get_body_checksums, "space");
 }
 
 PhysicsServer3DExtension::PhysicsServer3DExtension() {

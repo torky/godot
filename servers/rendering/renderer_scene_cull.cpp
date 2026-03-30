@@ -484,6 +484,9 @@ RID RendererSceneCull::scenario_get_environment(RID p_scenario) {
 }
 
 void RendererSceneCull::scenario_remove_viewport_visibility_mask(RID p_scenario, RID p_viewport) {
+	if (!p_scenario.is_valid()) {
+		return; // No scenario was ever assigned — safe to skip
+	}
 	Scenario *scenario = scenario_owner.get_or_null(p_scenario);
 	ERR_FAIL_NULL(scenario);
 	if (!scenario->viewport_visibility_masks.has(p_viewport)) {

@@ -450,4 +450,7 @@ public:
 
 	virtual int get_process_info(ProcessInfo p_info) override { return 0; }
 	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) override { return 0; }
+
+	virtual int space_get_body_checksum(RID p_space) override { return 0; }
+	virtual Dictionary space_get_body_checksums(RID p_space) override { return Dictionary(); }
 };

@@ -420,6 +420,13 @@ public:
 		return physics_server_3d->space_get_last_process_info(p_space, p_info);
 	}
 
+	virtual int space_get_body_checksum(RID p_space) override {
+		return physics_server_3d->space_get_body_checksum(p_space);
+	}
+	virtual Dictionary space_get_body_checksums(RID p_space) override {
+		return physics_server_3d->space_get_body_checksums(p_space);
+	}
+
 	PhysicsServer3DWrapMT(PhysicsServer3D *p_contained, bool p_create_thread);
 	~PhysicsServer3DWrapMT();
 

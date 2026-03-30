@@ -1722,6 +1722,67 @@ int JoltPhysicsServer3D::space_get_last_process_info(RID p_space, ProcessInfo p_
 	return space->get_physics_system().GetNumBodies();
 }
 
+static int _hash_float(int hash, float f) {
+	union { float f; int32_t i; } u;
+	u.f = f;
+	return hash * 31 + u.i;
+}
+
+static int _hash_vector3(int hash, const Vector3 &v) {
+	hash = _hash_float(hash, v.x);
+	hash = _hash_float(hash, v.y);
+	hash = _hash_float(hash, v.z);
+	return hash;
+}
+
+static int _hash_body_state(JoltBody3D *body) {
+	int hash = 17;
+	Transform3D t = body->get_transform_scaled();
+	hash = _hash_vector3(hash, t.origin);
+	hash = _hash_vector3(hash, t.basis.rows[0]);
+	hash = _hash_vector3(hash, t.basis.rows[1]);
+	hash = _hash_vector3(hash, t.basis.rows[2]);
+	hash = _hash_vector3(hash, body->get_linear_velocity());
+	hash = _hash_vector3(hash, body->get_angular_velocity());
+	return hash;
+}
+
+int JoltPhysicsServer3D::space_get_body_checksum(RID p_space) {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL_V(space, 0);
+
+	JPH::PhysicsSystem &system = space->get_physics_system();
+	const JPH::BodyID *active_bodies = system.GetActiveBodiesUnsafe(JPH::EBodyType::RigidBody);
+	JPH::uint32 count = system.GetNumActiveBodies(JPH::EBodyType::RigidBody);
+	int checksum = 17;
+
+	for (JPH::uint32 i = 0; i < count; i++) {
+		JoltBody3D *body = space->try_get_body(active_bodies[i]);
+		if (body == nullptr) continue;
+		checksum = checksum * 31 + _hash_body_state(body);
+	}
+
+	return checksum;
+}
+
+Dictionary JoltPhysicsServer3D::space_get_body_checksums(RID p_space) {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	Dictionary result;
+	ERR_FAIL_NULL_V(space, result);
+
+	JPH::PhysicsSystem &system = space->get_physics_system();
+	const JPH::BodyID *active_bodies = system.GetActiveBodiesUnsafe(JPH::EBodyType::RigidBody);
+	JPH::uint32 count = system.GetNumActiveBodies(JPH::EBodyType::RigidBody);
+
+	for (JPH::uint32 i = 0; i < count; i++) {
+		JoltBody3D *body = space->try_get_body(active_bodies[i]);
+		if (body == nullptr) continue;
+		result[Variant((int64_t)body->get_instance_id())] = _hash_body_state(body);
+	}
+
+	return result;
+}
+
 void JoltPhysicsServer3D::free_space(JoltSpace3D *p_space) {
 	ERR_FAIL_NULL(p_space);
 

@@ -555,6 +555,9 @@ public:
 	EXBIND1R(int, get_process_info, ProcessInfo)
 	EXBIND2R(int, space_get_last_process_info, RID, ProcessInfo)
 
+	EXBIND1R(int, space_get_body_checksum, RID)
+	EXBIND1R(Dictionary, space_get_body_checksums, RID)
+
 	PhysicsServer3DExtension();
 	~PhysicsServer3DExtension();
 };
