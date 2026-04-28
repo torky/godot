@@ -337,6 +337,17 @@ void JoltShapedObject3D::add_shape(JoltShape3D *p_shape, Transform3D p_transform
 	_shapes_changed();
 }
 
+void JoltShapedObject3D::add_shapes(const Vector<JoltShape3D *> &p_shapes, const Vector<Transform3D> &p_transforms) {
+	for (int i = 0; i < p_shapes.size(); i++) {
+		Transform3D transform = i < p_transforms.size() ? p_transforms[i] : Transform3D();
+		JOLT_ENSURE_SCALE_NOT_ZERO(transform, vformat("An invalid transform was passed when adding shape at index %d to physics body '%s'.", shapes.size(), to_string()));
+		Vector3 shape_scale;
+		JoltMath::decompose(transform, shape_scale);
+		shapes.push_back(JoltShapeInstance3D(this, p_shapes[i], transform, shape_scale, false));
+	}
+	_shapes_changed();
+}
+
 void JoltShapedObject3D::remove_shape(const JoltShape3D *p_shape) {
 	for (int i = shapes.size() - 1; i >= 0; i--) {
 		if (shapes[i].get_shape() == p_shape) {

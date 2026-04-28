@@ -172,6 +172,7 @@ public:
 	virtual RID area_get_space(RID p_area) const override;
 
 	virtual void area_add_shape(RID p_area, RID p_shape, const Transform3D &p_transform, bool p_disabled) override;
+	virtual void area_add_shapes(RID p_area, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) override;
 
 	virtual void area_set_shape(RID p_area, int p_shape_idx, RID p_shape) override;
 	virtual RID area_get_shape(RID p_area, int p_shape_idx) const override;
@@ -217,6 +218,7 @@ public:
 	virtual PhysicsServer3D::BodyMode body_get_mode(RID p_body) const override;
 
 	virtual void body_add_shape(RID p_body, RID p_shape, const Transform3D &p_transform, bool p_disabled) override;
+	virtual void body_add_shapes(RID p_body, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) override;
 
 	virtual void body_set_shape(RID p_body, int p_shape_idx, RID p_shape) override;
 	virtual RID body_get_shape(RID p_body, int p_shape_idx) const override;

@@ -102,6 +102,7 @@ public:
 	const JPH::Shape *get_previous_jolt_shape() const { return previous_jolt_shape; }
 
 	void add_shape(JoltShape3D *p_shape, Transform3D p_transform, bool p_disabled);
+	void add_shapes(const Vector<JoltShape3D *> &p_shapes, const Vector<Transform3D> &p_transforms);
 	void remove_shape(const JoltShape3D *p_shape);
 	void remove_shape(int p_index);
 

@@ -696,6 +696,18 @@ RID PhysicsServer3D::shape_create(ShapeType p_shape) {
 	}
 }
 
+void PhysicsServer3D::area_add_shapes(RID p_area, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) {
+	for (int i = 0; i < p_shapes.size(); i++) {
+		area_add_shape(p_area, p_shapes[i], i < p_transforms.size() ? (Transform3D)p_transforms[i] : Transform3D());
+	}
+}
+
+void PhysicsServer3D::body_add_shapes(RID p_body, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) {
+	for (int i = 0; i < p_shapes.size(); i++) {
+		body_add_shape(p_body, p_shapes[i], i < p_transforms.size() ? (Transform3D)p_transforms[i] : Transform3D());
+	}
+}
+
 void PhysicsServer3D::_bind_methods() {
 #ifndef _3D_DISABLED
 
@@ -733,6 +745,7 @@ void PhysicsServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("area_get_space", "area"), &PhysicsServer3D::area_get_space);
 
 	ClassDB::bind_method(D_METHOD("area_add_shape", "area", "shape", "transform", "disabled"), &PhysicsServer3D::area_add_shape, DEFVAL(Transform3D()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("area_add_shapes", "area", "shapes", "transforms"), &PhysicsServer3D::area_add_shapes, DEFVAL(TypedArray<Transform3D>()));
 	ClassDB::bind_method(D_METHOD("area_set_shape", "area", "shape_idx", "shape"), &PhysicsServer3D::area_set_shape);
 	ClassDB::bind_method(D_METHOD("area_set_shape_transform", "area", "shape_idx", "transform"), &PhysicsServer3D::area_set_shape_transform);
 	ClassDB::bind_method(D_METHOD("area_set_shape_disabled", "area", "shape_idx", "disabled"), &PhysicsServer3D::area_set_shape_disabled);
@@ -783,6 +796,7 @@ void PhysicsServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("body_get_collision_priority", "body"), &PhysicsServer3D::body_get_collision_priority);
 
 	ClassDB::bind_method(D_METHOD("body_add_shape", "body", "shape", "transform", "disabled"), &PhysicsServer3D::body_add_shape, DEFVAL(Transform3D()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("body_add_shapes", "body", "shapes", "transforms"), &PhysicsServer3D::body_add_shapes, DEFVAL(TypedArray<Transform3D>()));
 	ClassDB::bind_method(D_METHOD("body_set_shape", "body", "shape_idx", "shape"), &PhysicsServer3D::body_set_shape);
 	ClassDB::bind_method(D_METHOD("body_set_shape_transform", "body", "shape_idx", "transform"), &PhysicsServer3D::body_set_shape_transform);
 	ClassDB::bind_method(D_METHOD("body_set_shape_disabled", "body", "shape_idx", "disabled"), &PhysicsServer3D::body_set_shape_disabled);
