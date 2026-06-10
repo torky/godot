@@ -200,7 +200,7 @@ void Area3D::_body_enter_tree(ObjectID p_id) {
 	E->value.in_tree = true;
 	emit_signal(SceneStringName(body_entered), node);
 	for (int i = 0; i < E->value.shapes.size(); i++) {
-		emit_signal(SceneStringName(body_shape_entered), E->value.rid, node, E->value.shapes[i].body_shape, E->value.shapes[i].area_shape);
+		emit_signal(SceneStringName(body_shape_entered), E->value.rid, node, E->value.shapes[i].body_shape, E->value.shapes[i].self_shape);
 	}
 }
 
@@ -214,7 +214,7 @@ void Area3D::_body_exit_tree(ObjectID p_id) {
 	E->value.in_tree = false;
 	emit_signal(SceneStringName(body_exited), node);
 	for (int i = 0; i < E->value.shapes.size(); i++) {
-		emit_signal(SceneStringName(body_shape_exited), E->value.rid, node, E->value.shapes[i].body_shape, E->value.shapes[i].area_shape);
+		emit_signal(SceneStringName(body_shape_exited), E->value.rid, node, E->value.shapes[i].body_shape, E->value.shapes[i].self_shape);
 	}
 }
 
@@ -324,7 +324,7 @@ void Area3D::_clear_monitoring() {
 			}
 
 			for (int i = 0; i < E.value.shapes.size(); i++) {
-				emit_signal(SceneStringName(body_shape_exited), E.value.rid, node, E.value.shapes[i].body_shape, E.value.shapes[i].area_shape);
+				emit_signal(SceneStringName(body_shape_exited), E.value.rid, node, E.value.shapes[i].body_shape, E.value.shapes[i].self_shape);
 			}
 
 			emit_signal(SceneStringName(body_exited), node);
@@ -568,6 +568,64 @@ bool Area3D::has_overlapping_areas() const {
 	return !area_map.is_empty();
 }
 
+TypedArray<RID> Area3D::get_overlapping_body_shape_rids() const {
+	TypedArray<RID> ret;
+	ERR_FAIL_COND_V_MSG(!monitoring, ret, "Can't find overlapping body shapes when monitoring is off.");
+	for (const KeyValue<ObjectID, BodyState> &E : body_map) {
+		if (!E.value.in_tree) {
+			continue;
+		}
+		for (int i = 0; i < E.value.shapes.size(); i++) {
+			ret.push_back(E.value.rid);
+		}
+	}
+	return ret;
+}
+
+PackedInt32Array Area3D::get_overlapping_body_shape_indices() const {
+	PackedInt32Array ret;
+	ERR_FAIL_COND_V_MSG(!monitoring, ret, "Can't find overlapping body shapes when monitoring is off.");
+	for (const KeyValue<ObjectID, BodyState> &E : body_map) {
+		if (!E.value.in_tree) {
+			continue;
+		}
+		for (int i = 0; i < E.value.shapes.size(); i++) {
+			ret.push_back(E.value.shapes[i].body_shape);
+			ret.push_back(E.value.shapes[i].self_shape);
+		}
+	}
+	return ret;
+}
+
+TypedArray<RID> Area3D::get_overlapping_area_shape_rids() const {
+	TypedArray<RID> ret;
+	ERR_FAIL_COND_V_MSG(!monitoring, ret, "Can't find overlapping area shapes when monitoring is off.");
+	for (const KeyValue<ObjectID, AreaState> &E : area_map) {
+		if (!E.value.in_tree) {
+			continue;
+		}
+		for (int i = 0; i < E.value.shapes.size(); i++) {
+			ret.push_back(E.value.rid);
+		}
+	}
+	return ret;
+}
+
+PackedInt32Array Area3D::get_overlapping_area_shape_indices() const {
+	PackedInt32Array ret;
+	ERR_FAIL_COND_V_MSG(!monitoring, ret, "Can't find overlapping area shapes when monitoring is off.");
+	for (const KeyValue<ObjectID, AreaState> &E : area_map) {
+		if (!E.value.in_tree) {
+			continue;
+		}
+		for (int i = 0; i < E.value.shapes.size(); i++) {
+			ret.push_back(E.value.shapes[i].area_shape);
+			ret.push_back(E.value.shapes[i].self_shape);
+		}
+	}
+	return ret;
+}
+
 bool Area3D::overlaps_area(RequiredParam<Node> rp_area) const {
 	EXTRACT_PARAM_OR_FAIL_V(p_area, rp_area, false);
 	HashMap<ObjectID, AreaState>::ConstIterator E = area_map.find(p_area->get_instance_id());
@@ -735,6 +793,11 @@ void Area3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_overlapping_bodies"), &Area3D::get_overlapping_bodies);
 	ClassDB::bind_method(D_METHOD("get_overlapping_areas"), &Area3D::get_overlapping_areas);
+
+	ClassDB::bind_method(D_METHOD("get_overlapping_body_shape_rids"), &Area3D::get_overlapping_body_shape_rids);
+	ClassDB::bind_method(D_METHOD("get_overlapping_body_shape_indices"), &Area3D::get_overlapping_body_shape_indices);
+	ClassDB::bind_method(D_METHOD("get_overlapping_area_shape_rids"), &Area3D::get_overlapping_area_shape_rids);
+	ClassDB::bind_method(D_METHOD("get_overlapping_area_shape_indices"), &Area3D::get_overlapping_area_shape_indices);
 
 	ClassDB::bind_method(D_METHOD("has_overlapping_bodies"), &Area3D::has_overlapping_bodies);
 	ClassDB::bind_method(D_METHOD("has_overlapping_areas"), &Area3D::has_overlapping_areas);

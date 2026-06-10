@@ -74,19 +74,19 @@ private:
 
 	struct ShapePair {
 		int body_shape = 0;
-		int area_shape = 0;
+		int self_shape = 0;
 		bool operator<(const ShapePair &p_sp) const {
 			if (body_shape == p_sp.body_shape) {
-				return area_shape < p_sp.area_shape;
+				return self_shape < p_sp.self_shape;
 			} else {
 				return body_shape < p_sp.body_shape;
 			}
 		}
 
 		ShapePair() {}
-		ShapePair(int p_bs, int p_as) {
+		ShapePair(int p_bs, int p_ss) {
 			body_shape = p_bs;
-			area_shape = p_as;
+			self_shape = p_ss;
 		}
 	};
 
@@ -200,6 +200,11 @@ public:
 
 	TypedArray<Node3D> get_overlapping_bodies() const;
 	TypedArray<Area3D> get_overlapping_areas() const; //function for script
+
+	TypedArray<RID> get_overlapping_body_shape_rids() const;
+	PackedInt32Array get_overlapping_body_shape_indices() const;
+	TypedArray<RID> get_overlapping_area_shape_rids() const;
+	PackedInt32Array get_overlapping_area_shape_indices() const;
 
 	bool has_overlapping_bodies() const;
 	bool has_overlapping_areas() const;

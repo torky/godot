@@ -15,6 +15,22 @@
 		<link title="GUI in 3D Viewport Demo">https://godotengine.org/asset-library/asset/2807</link>
 	</tutorials>
 	<methods>
+		<method name="get_overlapping_area_shape_indices" qualifiers="const">
+			<return type="PackedInt32Array" />
+			<description>
+				Returns a flat array of shape indices for every overlapping [Area3D] shape pair, paired by index with [method get_overlapping_area_shape_rids]. Stride is 2: for pair [code]i[/code], element [code]i * 2[/code] is the shape index on the [i]other[/i] [Area3D] and element [code]i * 2 + 1[/code] is the shape index on [i]this[/i] [Area3D]. Use this together with [method get_overlapping_area_shape_rids] to recover the full set of overlapping shape pairs without per-pair allocations.
+				The overlapping area's [member CollisionObject3D.collision_layer] must be part of this area's [member CollisionObject3D.collision_mask] in order to be detected.
+				For performance reasons (collisions are all processed at the same time) this list is modified once during the physics step, not immediately after objects are moved. Consider using signals instead.
+			</description>
+		</method>
+		<method name="get_overlapping_area_shape_rids" qualifiers="const">
+			<return type="RID[]" />
+			<description>
+				Returns one [RID] per overlapping [Area3D] shape pair, identifying the [i]other[/i] [Area3D] for each pair. Pair element [code]i[/code] corresponds to indices [code]i * 2[/code] and [code]i * 2 + 1[/code] in [method get_overlapping_area_shape_indices]. The same [RID] may appear multiple times if multiple shapes on that area are overlapping.
+				The overlapping area's [member CollisionObject3D.collision_layer] must be part of this area's [member CollisionObject3D.collision_mask] in order to be detected.
+				For performance reasons (collisions are all processed at the same time) this list is modified once during the physics step, not immediately after objects are moved. Consider using signals instead.
+			</description>
+		</method>
 		<method name="get_overlapping_areas" qualifiers="const">
 			<return type="Area3D[]" />
 			<description>
@@ -26,6 +42,22 @@
 			<return type="Node3D[]" />
 			<description>
 				Returns a list of intersecting [PhysicsBody3D]s and [GridMap]s. The overlapping body's [member CollisionObject3D.collision_layer] must be part of this area's [member CollisionObject3D.collision_mask] in order to be detected.
+				For performance reasons (collisions are all processed at the same time) this list is modified once during the physics step, not immediately after objects are moved. Consider using signals instead.
+			</description>
+		</method>
+		<method name="get_overlapping_body_shape_indices" qualifiers="const">
+			<return type="PackedInt32Array" />
+			<description>
+				Returns a flat array of shape indices for every overlapping body shape pair, paired by index with [method get_overlapping_body_shape_rids]. Stride is 2: for pair [code]i[/code], element [code]i * 2[/code] is the shape index on the body and element [code]i * 2 + 1[/code] is the shape index on [i]this[/i] [Area3D]. Use this together with [method get_overlapping_body_shape_rids] to recover the full set of overlapping shape pairs without per-pair allocations — useful for ECS-style code that maps [code](body_rid, body_shape)[/code] to its own entity handle.
+				The overlapping body's [member CollisionObject3D.collision_layer] must be part of this area's [member CollisionObject3D.collision_mask] in order to be detected.
+				For performance reasons (collisions are all processed at the same time) this list is modified once during the physics step, not immediately after objects are moved. Consider using signals instead.
+			</description>
+		</method>
+		<method name="get_overlapping_body_shape_rids" qualifiers="const">
+			<return type="RID[]" />
+			<description>
+				Returns one [RID] per overlapping body shape pair, identifying the [PhysicsBody3D] (or [GridMap]) for each pair. Pair element [code]i[/code] corresponds to indices [code]i * 2[/code] and [code]i * 2 + 1[/code] in [method get_overlapping_body_shape_indices]. The same [RID] may appear multiple times if multiple shapes on that body are overlapping.
+				The overlapping body's [member CollisionObject3D.collision_layer] must be part of this area's [member CollisionObject3D.collision_mask] in order to be detected.
 				For performance reasons (collisions are all processed at the same time) this list is modified once during the physics step, not immediately after objects are moved. Consider using signals instead.
 			</description>
 		</method>

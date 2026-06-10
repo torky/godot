@@ -1257,8 +1257,26 @@
 			<description>
 			</description>
 		</method>
-		<method name="_space_flush_queries" qualifiers="virtual" experimental="">
+		<method name="_space_flush_pending_objects" qualifiers="virtual required">
 			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_flush_queries" qualifiers="virtual required" experimental="">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_body_checksum" qualifiers="virtual required">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_body_checksums" qualifiers="virtual required">
+			<return type="Dictionary" />
 			<param index="0" name="space" type="RID" />
 			<description>
 			</description>
@@ -1281,7 +1299,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="_space_get_last_process_info" qualifiers="virtual" experimental="">
+		<method name="_space_get_last_process_info" qualifiers="virtual required" experimental="">
 			<return type="int" />
 			<param index="0" name="space" type="RID" />
 			<param index="1" name="process_info" type="int" enum="PhysicsServer3D.ProcessInfo" />
@@ -1295,7 +1313,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="_space_get_time" qualifiers="virtual const">
+		<method name="_space_get_time" qualifiers="virtual required const">
 			<return type="float" />
 			<param index="0" name="space" type="RID" />
 			<description>
@@ -1329,7 +1347,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="_space_step" qualifiers="virtual" experimental="">
+		<method name="_space_step" qualifiers="virtual required" experimental="">
 			<return type="void" />
 			<param index="0" name="space" type="RID" />
 			<param index="1" name="delta" type="float" />

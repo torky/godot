@@ -26,6 +26,14 @@
 				Adds a shape to the area, along with a transform matrix. Shapes are usually referenced by their index, so you should track which shape has a given index.
 			</description>
 		</method>
+		<method name="area_add_shapes">
+			<return type="void" />
+			<param index="0" name="area" type="RID" />
+			<param index="1" name="shapes" type="RID[]" />
+			<param index="2" name="transforms" type="Transform3D[]" default="[]" />
+			<description>
+			</description>
+		</method>
 		<method name="area_attach_object_instance_id">
 			<return type="void" />
 			<param index="0" name="area" type="RID" />
@@ -275,6 +283,14 @@
 			<param index="3" name="disabled" type="bool" default="false" />
 			<description>
 				Adds a shape to the body, along with a transform matrix. Shapes are usually referenced by their index, so you should track which shape has a given index.
+			</description>
+		</method>
+		<method name="body_add_shapes">
+			<return type="void" />
+			<param index="0" name="body" type="RID" />
+			<param index="1" name="shapes" type="RID[]" />
+			<param index="2" name="transforms" type="Transform3D[]" default="[]" />
+			<description>
 			</description>
 		</method>
 		<method name="body_apply_central_force">
@@ -708,6 +724,12 @@
 			<return type="RID" />
 			<description>
 				Creates a 3D capsule shape in the physics server, and returns the [RID] that identifies it. Use [method shape_set_data] to set the capsule's height and radius.
+			</description>
+		</method>
+		<method name="collision_object_get_internal_index" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="object" type="RID" />
+			<description>
 			</description>
 		</method>
 		<method name="concave_polygon_shape_create">
@@ -1385,11 +1407,29 @@
 				Creates a space. A space is a collection of parameters for the physics engine that can be assigned to an area or a body. It can be assigned to an area with [method area_set_space], or to a body with [method body_set_space].
 			</description>
 		</method>
+		<method name="space_flush_pending_objects">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="space_flush_queries" experimental="">
 			<return type="void" />
 			<param index="0" name="space" type="RID" />
 			<description>
 				Flushes [param space]'s queries. It is necessary to call this method after calling [method space_step] with an active space from [code]_physics_process[/code]. Otherwise, call this method before calling [method space_step].
+			</description>
+		</method>
+		<method name="space_get_body_checksum">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="space_get_body_checksums">
+			<return type="Dictionary" />
+			<param index="0" name="space" type="RID" />
+			<description>
 			</description>
 		</method>
 		<method name="space_get_direct_state">
