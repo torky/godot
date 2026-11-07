@@ -316,6 +316,32 @@ public:
 	uint64					GetUserData() const												{ return mUserData; }
 	void					SetUserData(uint64 inUserData)									{ mUserData = inUserData; }
 
+	/// Key that orders bodies deterministically without depending on the BodyIDs they were assigned (which depend on creation history)
+	inline uint32			GetStableKey() const											{ return mStableKey; }
+
+	/// Recompute the stable key from the current motion type, sensor flag, pose and shape bounds
+	void					ResetStableKey();
+
+	/// Order on the stable keys; the BodyID only breaks a full tie, which is counted in sStableKeyTies
+	inline bool				IsStableLess(const Body &inRHS) const
+	{
+		if (mStableKey != inRHS.mStableKey)
+			return mStableKey < inRHS.mStableKey;
+		if (mID == inRHS.mID)
+			return false;
+		uint32 lhs_tie = ComputeTieKey(), rhs_tie = inRHS.ComputeTieKey();
+		if (lhs_tie != rhs_tie)
+			return lhs_tie < rhs_tie;
+		sStableKeyTies.fetch_add(1, memory_order_relaxed);
+		return mID < inRHS.mID;
+	}
+
+	/// Hash of the current pose, velocity, mass, material, layer and shape, used when two stable keys tie
+	uint32					ComputeTieKey() const;
+
+	/// Number of comparisons between distinct bodies whose stable keys were equal, so the order fell back to the BodyID
+	static inline atomic<uint32> sStableKeyTies { 0 };
+
 	/// Get surface normal of a particular sub shape and its world space surface position on this body
 	inline Vec3				GetWorldSpaceSurfaceNormal(const SubShapeID &inSubShapeID, RVec3Arg inPosition) const;
 
@@ -431,6 +457,7 @@ private:
 	float					mFriction;														///< Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction, 1 = friction force equals force that presses the two bodies together). Note that bodies can have negative friction but the combined friction (see PhysicsSystem::SetCombineFriction) should never go below zero.
 	float					mRestitution;													///< Restitution of body (dimensionless number, usually between 0 and 1, 0 = completely inelastic collision response, 1 = completely elastic collision response). Note that bodies can have negative restitution but the combined restitution (see PhysicsSystem::SetCombineRestitution) should never go below zero.
 	BodyID					mID;															///< ID of the body (index in the bodies array)
+	uint32					mStableKey = 0;													///< See GetStableKey
 
 	// 2 or 4 bytes aligned
 	ObjectLayer				mObjectLayer;													///< The collision layer this body belongs to (determines if two objects can collide)

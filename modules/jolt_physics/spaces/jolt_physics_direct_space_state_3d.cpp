@@ -55,6 +55,54 @@
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/PhysicsSystem.h"
 
+namespace {
+
+struct JoltStableHit {
+	const JPH::Body *body = nullptr;
+	uint32_t sub_shape = 0;
+	uint32_t self_sub_shape = 0;
+	int index = 0;
+};
+
+struct JoltStableHitLess {
+	bool operator()(const JoltStableHit &p_a, const JoltStableHit &p_b) const {
+		if (p_a.body != p_b.body) {
+			return p_a.body->IsStableLess(*p_b.body);
+		}
+		if (p_a.sub_shape != p_b.sub_shape) {
+			return p_a.sub_shape < p_b.sub_shape;
+		}
+		if (p_a.self_sub_shape != p_b.self_sub_shape) {
+			return p_a.self_sub_shape < p_b.self_sub_shape;
+		}
+		return p_a.index < p_b.index;
+	}
+};
+
+template <typename TCollector, typename TBodyOf, typename TSubShapeOf, typename TSelfSubShapeOf>
+void jolt_stable_hit_order(const JoltSpace3D &p_space, const TCollector &p_collector, int p_max, LocalVector<int> &r_order, TBodyOf p_body_of, TSubShapeOf p_sub_shape_of, TSelfSubShapeOf p_self_sub_shape_of) {
+	const JPH::BodyLockInterface &lock_iface = p_space.get_lock_iface();
+	LocalVector<JoltStableHit> hits;
+	const int count = p_collector.get_hit_count();
+	hits.reserve(count);
+	for (int i = 0; i < count; ++i) {
+		const auto &hit = p_collector.get_hit(i);
+		const JPH::Body *body = lock_iface.TryGetBody(p_body_of(hit));
+		if (body == nullptr) {
+			continue;
+		}
+		hits.push_back({ body, p_sub_shape_of(hit), p_self_sub_shape_of(hit), i });
+	}
+	hits.sort_custom<JoltStableHitLess>();
+	r_order.clear();
+	const int kept = MIN((int)hits.size(), p_max);
+	for (int i = 0; i < kept; ++i) {
+		r_order.push_back(hits[i].index);
+	}
+}
+
+}
+
 bool JoltPhysicsDirectSpaceState3D::_cast_motion_impl(const JPH::Shape &p_jolt_shape, const Transform3D &p_transform_com, const Vector3 &p_scale, const Vector3 &p_motion, bool p_use_edge_removal, bool p_ignore_overlaps, const JPH::CollideShapeSettings &p_settings, const JPH::BroadPhaseLayerFilter &p_broad_phase_layer_filter, const JPH::ObjectLayerFilter &p_object_layer_filter, const JPH::BodyFilter &p_body_filter, const JPH::ShapeFilter &p_shape_filter, real_t &r_closest_safe, real_t &r_closest_unsafe) const {
 	r_closest_safe = 1.0f;
 	r_closest_unsafe = 1.0f;
@@ -183,7 +231,8 @@ bool JoltPhysicsDirectSpaceState3D::_body_motion_recover(const JoltBody3D &p_bod
 	const Vector3 &base_offset = transform_com.origin;
 
 	const JoltMotionFilter3D motion_filter(p_body, p_excluded_bodies, p_excluded_objects);
-	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector;
+	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector(INT_MAX);
+	LocalVector<int> order;
 
 	bool recovered = false;
 
@@ -196,12 +245,16 @@ bool JoltPhysicsDirectSpaceState3D::_body_motion_recover(const JoltBody3D &p_bod
 			break;
 		}
 
-		const int hit_count = collector.get_hit_count();
+		jolt_stable_hit_order(*space, collector, INT_MAX, order, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mBodyID2; }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID2.GetValue(); }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID1.GetValue(); });
+		const int hit_count = (int)order.size();
+		if (hit_count == 0) {
+			break;
+		}
 
 		float combined_priority = 0.0;
 
 		for (int j = 0; j < hit_count; j++) {
-			const JPH::CollideShapeResult &hit = collector.get_hit(j);
+			const JPH::CollideShapeResult &hit = collector.get_hit(order[j]);
 			const JoltBody3D *other_body = space->try_get_body(hit.mBodyID2);
 			ERR_CONTINUE(other_body == nullptr);
 
@@ -215,7 +268,7 @@ bool JoltPhysicsDirectSpaceState3D::_body_motion_recover(const JoltBody3D &p_bod
 		Vector3 recovery;
 
 		for (int j = 0; j < hit_count; ++j) {
-			const JPH::CollideShapeResult &hit = collector.get_hit(j);
+			const JPH::CollideShapeResult &hit = collector.get_hit(order[j]);
 
 			const Vector3 penetration_axis = to_godot(hit.mPenetrationAxis.Normalized());
 			const Vector3 margin_offset = penetration_axis * p_margin;
@@ -536,13 +589,15 @@ int JoltPhysicsDirectSpaceState3D::intersect_point(const PointParameters &p_para
 	space->flush_pending_objects();
 
 	const JoltQueryFilter3D query_filter(*this, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, p_parameters.exclude);
-	JoltQueryCollectorAnyMulti<JPH::CollidePointCollector, 32> collector(p_result_max);
+	JoltQueryCollectorAnyMulti<JPH::CollidePointCollector, 32> collector(INT_MAX);
 	space->get_narrow_phase_query().CollidePoint(to_jolt_r(p_parameters.position), collector, query_filter, query_filter, query_filter);
 
-	const int hit_count = collector.get_hit_count();
+	LocalVector<int> order;
+	jolt_stable_hit_order(*space, collector, p_result_max, order, [](const JPH::CollidePointResult &p_hit) { return p_hit.mBodyID; }, [](const JPH::CollidePointResult &p_hit) { return p_hit.mSubShapeID2.GetValue(); }, [](const JPH::CollidePointResult &) { return 0u; });
+	const int hit_count = (int)order.size();
 
 	for (int i = 0; i < hit_count; ++i) {
-		const JPH::CollidePointResult &hit = collector.get_hit(i);
+		const JPH::CollidePointResult &hit = collector.get_hit(order[i]);
 		const JoltObject3D *object = space->try_get_object(hit.mBodyID);
 		ERR_FAIL_NULL_V(object, 0);
 
@@ -593,13 +648,15 @@ int JoltPhysicsDirectSpaceState3D::intersect_shape(const ShapeParameters &p_para
 	settings.mMaxSeparationDistance = (float)p_parameters.margin;
 
 	const JoltQueryFilter3D query_filter(*this, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, p_parameters.exclude);
-	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector(p_result_max);
+	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector(INT_MAX);
 	_collide_shape_queries(jolt_shape, to_jolt(scale), to_jolt_r(transform_com), settings, to_jolt_r(transform_com.origin), collector, query_filter, query_filter, query_filter);
 
-	const int hit_count = collector.get_hit_count();
+	LocalVector<int> order;
+	jolt_stable_hit_order(*space, collector, p_result_max, order, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mBodyID2; }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID2.GetValue(); }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID1.GetValue(); });
+	const int hit_count = (int)order.size();
 
 	for (int i = 0; i < hit_count; ++i) {
-		const JPH::CollideShapeResult &hit = collector.get_hit(i);
+		const JPH::CollideShapeResult &hit = collector.get_hit(order[i]);
 		const JoltObject3D *object = space->try_get_object(hit.mBodyID2);
 		ERR_FAIL_NULL_V(object, 0);
 
@@ -686,19 +743,22 @@ bool JoltPhysicsDirectSpaceState3D::collide_shape(const ShapeParameters &p_param
 	const Vector3 &base_offset = transform_com.origin;
 
 	const JoltQueryFilter3D query_filter(*this, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, p_parameters.exclude);
-	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector(p_result_max);
+	JoltQueryCollectorAnyMulti<JPH::CollideShapeCollector, 32> collector(INT_MAX);
 	_collide_shape_queries(jolt_shape, to_jolt(scale), to_jolt_r(transform_com), settings, to_jolt_r(base_offset), collector, query_filter, query_filter, query_filter);
 
 	if (!collector.had_hit()) {
 		return false;
 	}
 
+	LocalVector<int> order;
+	jolt_stable_hit_order(*space, collector, p_result_max, order, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mBodyID2; }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID2.GetValue(); }, [](const JPH::CollideShapeResult &p_hit) { return p_hit.mSubShapeID1.GetValue(); });
+
 	const int max_points = p_result_max * 2;
 
 	int point_count = 0;
 
-	for (int i = 0; i < collector.get_hit_count(); ++i) {
-		const JPH::CollideShapeResult &hit = collector.get_hit(i);
+	for (int i = 0; i < (int)order.size(); ++i) {
+		const JPH::CollideShapeResult &hit = collector.get_hit(order[i]);
 
 		const Vector3 penetration_axis = to_godot(hit.mPenetrationAxis.Normalized());
 		const Vector3 margin_offset = penetration_axis * (float)p_parameters.margin;

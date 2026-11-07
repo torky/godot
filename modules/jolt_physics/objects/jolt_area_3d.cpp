@@ -632,6 +632,23 @@ void JoltArea3D::area_exited(const JPH::BodyID &p_body_id) {
 	overlap->shape_pairs.clear();
 }
 
+void JoltArea3D::exit_all_overlaps() {
+	LocalVector<JPH::BodyID> ids;
+	for (const KeyValue<JPH::BodyID, Overlap> &E : bodies_by_id) {
+		ids.push_back(E.key);
+	}
+	for (const JPH::BodyID &id : ids) {
+		body_exited(id, true);
+	}
+	ids.clear();
+	for (const KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
+		ids.push_back(E.key);
+	}
+	for (const JPH::BodyID &id : ids) {
+		area_exited(id);
+	}
+}
+
 void JoltArea3D::call_queries() {
 	_flush_events(bodies_by_id, body_monitor_callback);
 	_flush_events(areas_by_id, area_monitor_callback);

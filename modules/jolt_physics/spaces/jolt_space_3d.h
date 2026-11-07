@@ -84,6 +84,12 @@ class JoltSpace3D {
 
 	void _pre_step(float p_step);
 	void _post_step(float p_step);
+	void _dump_stable_keys(const String &p_path) const;
+	void _canonicalize_area_overlaps();
+	void _canonicalize_poses();
+	void _canonicalize_sleep();
+	int dump_keys_next_step = 0;
+	int dump_canonicalize_count = 0;
 
 public:
 	explicit JoltSpace3D(JPH::JobSystem *p_job_system);
@@ -137,6 +143,8 @@ public:
 	JPH::Body *add_object(const JoltObject3D &p_object, const JPH::SoftBodyCreationSettings &p_settings, bool p_sleeping = false);
 	void remove_object(const JPH::BodyID &p_jolt_id);
 	void flush_pending_objects();
+	void canonicalize();
+	int64_t get_state_hash(PackedInt64Array *r_bodies) const;
 
 	void set_is_object_sleeping(const JPH::BodyID &p_jolt_id, bool p_enable);
 

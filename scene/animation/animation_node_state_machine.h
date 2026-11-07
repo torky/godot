@@ -343,6 +343,12 @@ public:
 	float get_fading_from_play_pos() const;
 	float get_fading_from_length() const;
 
+	// The playback's private progress (current and fading nodes with their time info, travel path, pending
+	// requests) as plain values, so a lockstep session snapshot can resume a state machine mid-flight.
+	// Transition curves are not included; a fade restored mid-flight uses the linear default.
+	Array get_sim_state() const;
+	void set_sim_state(const Array &p_state);
+
 	float get_fading_time() const;
 	float get_fading_pos() const;
 

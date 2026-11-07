@@ -380,6 +380,40 @@ bool LookAtModifier3D::is_target_within_limitation() const {
 	return is_within_limitations;
 }
 
+PackedFloat32Array LookAtModifier3D::get_sim_state() const {
+	PackedFloat32Array state;
+	state.resize(SIM_STATE_SIZE);
+	float *w = state.ptrw();
+	w[0] = forward_vector.x;
+	w[1] = forward_vector.y;
+	w[2] = forward_vector.z;
+	w[3] = forward_vector_nrm.x;
+	w[4] = forward_vector_nrm.y;
+	w[5] = forward_vector_nrm.z;
+	w[6] = from_q.x;
+	w[7] = from_q.y;
+	w[8] = from_q.z;
+	w[9] = from_q.w;
+	w[10] = prev_q.x;
+	w[11] = prev_q.y;
+	w[12] = prev_q.z;
+	w[13] = prev_q.w;
+	w[14] = remaining;
+	w[15] = is_within_limitations ? 1.0f : 0.0f;
+	return state;
+}
+
+void LookAtModifier3D::set_sim_state(const PackedFloat32Array &p_state) {
+	ERR_FAIL_COND(p_state.size() != SIM_STATE_SIZE);
+	const float *r = p_state.ptr();
+	forward_vector = Vector3(r[0], r[1], r[2]);
+	forward_vector_nrm = Vector3(r[3], r[4], r[5]);
+	from_q = Quaternion(r[6], r[7], r[8], r[9]);
+	prev_q = Quaternion(r[10], r[11], r[12], r[13]);
+	remaining = r[14];
+	is_within_limitations = r[15] != 0.0f;
+}
+
 float LookAtModifier3D::get_interpolation_remaining() const {
 	return remaining * duration;
 }
@@ -462,6 +496,8 @@ void LookAtModifier3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_secondary_negative_damp_threshold"), &LookAtModifier3D::get_secondary_negative_damp_threshold);
 
 	ClassDB::bind_method(D_METHOD("get_interpolation_remaining"), &LookAtModifier3D::get_interpolation_remaining);
+	ClassDB::bind_method(D_METHOD("get_sim_state"), &LookAtModifier3D::get_sim_state);
+	ClassDB::bind_method(D_METHOD("set_sim_state", "state"), &LookAtModifier3D::set_sim_state);
 	ClassDB::bind_method(D_METHOD("is_interpolating"), &LookAtModifier3D::is_interpolating);
 	ClassDB::bind_method(D_METHOD("is_target_within_limitation"), &LookAtModifier3D::is_target_within_limitation);
 

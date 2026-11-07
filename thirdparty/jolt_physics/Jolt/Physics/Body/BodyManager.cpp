@@ -234,6 +234,7 @@ Body *BodyManager::AllocateBody(const BodyCreationSettings &inBodyCreationSettin
 
 	// Position body
 	body->SetPositionAndRotationInternal(inBodyCreationSettings.mPosition, inBodyCreationSettings.mRotation);
+	body->ResetStableKey();
 
 	return body;
 }
@@ -271,6 +272,7 @@ Body *BodyManager::AllocateSoftBody(const SoftBodyCreationSettings &inSoftBodyCr
 	mp->Initialize(inSoftBodyCreationSettings);
 
 	body->SetPositionAndRotationInternal(inSoftBodyCreationSettings.mPosition, inSoftBodyCreationSettings.mMakeRotationIdentity? Quat::sIdentity() : inSoftBodyCreationSettings.mRotation);
+	body->ResetStableKey();
 
 	return body;
 }

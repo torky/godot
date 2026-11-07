@@ -253,6 +253,27 @@ public:
 	/// Restoring state for replay. Returns false when failed.
 	bool						RestoreState(StateRecorder &inStream, const StateRecorderFilter *inFilter);
 
+	/// Zero the cached impulses used for warm starting, keeping cached manifolds so contact callbacks are unchanged
+	void						ResetWarmStart();
+
+	/// Forget every cached manifold and body pair, so the next step detects all contacts as new (no removed callbacks fire for the forgotten ones)
+	void						ResetContactCache();
+
+	/// TEMP diagnostics: visit every contact point of the manifolds produced by the last update.
+	/// Visitor(const SubShapeIDPair &, const Float3 &inNormalInBody2, uint inPointIndex, const Float3 &inPosition1, const Float3 &inPosition2, float inNonPenetrationLambda, float inFriction1, float inFriction2)
+	template <class Visitor>
+	void						ForEachCachedContactPoint(const Visitor &inVisitor)
+	{
+		mCache[mCacheWriteIdx ^ 1].ForEachManifold([&inVisitor](const MKeyValue &inKV) {
+			const CachedManifold &cm = inKV.GetValue();
+			for (uint i = 0; i < cm.mNumContactPoints; ++i)
+			{
+				const CachedContactPoint &ccp = cm.mContactPoints[i];
+				inVisitor(inKV.GetKey(), cm.mContactNormal, i, ccp.mPosition1, ccp.mPosition2, ccp.mNonPenetrationLambda, ccp.mFrictionLambda[0], ccp.mFrictionLambda[1]);
+			}
+		});
+	}
+
 private:
 	/// Local space contact point, used for caching impulses
 	class CachedContactPoint
@@ -379,6 +400,13 @@ private:
 		void					GetAllManifoldsSorted(const CachedBodyPair &inBodyPair, Array<const MKeyValue *> &outAll) const;
 		void					GetAllCCDManifoldsSorted(Array<const MKeyValue *> &outAll) const;
 		void					ContactPointRemovedCallbacks(ContactListener *inListener);
+
+		/// Zero the cached impulses of all contact points
+		void					ResetWarmStart();
+
+		/// TEMP diagnostics: visit every cached manifold
+		template <class Visitor>
+		void					ForEachManifold(const Visitor &inVisitor)	{ for (MKeyValue &kv : mCachedManifolds) inVisitor(kv); }
 
 #ifdef JPH_ENABLE_ASSERTS
 		/// Get the amount of manifolds in the cache

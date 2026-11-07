@@ -1011,9 +1011,15 @@ void PhysicsSystem::ProcessBodyPair(ContactAllocator &ioContactAllocator, const 
 	// Ensure that body1 has the higher motion type (i.e. dynamic trumps kinematic), this ensures that we do the collision detection in the space of a moving body,
 	// which avoids accuracy problems when testing a very large static object against a small dynamic object
 	// Ensure that body1 id < body2 id when motion types are the same.
-	if (body1->GetMotionType() < body2->GetMotionType()
-		|| (body1->GetMotionType() == body2->GetMotionType() && inBodyPair.mBodyB < inBodyPair.mBodyA))
+	// Two dynamic bodies are ordered on their stable key instead, so the solver does not depend on BodyID assignment order.
+	if (body1->GetMotionType() < body2->GetMotionType())
 		std::swap(body1, body2);
+	else if (body1->GetMotionType() == body2->GetMotionType())
+	{
+		bool swap = body1->IsDynamic()? body2->IsStableLess(*body1) : inBodyPair.mBodyB < inBodyPair.mBodyA;
+		if (swap)
+			std::swap(body1, body2);
+	}
 
 	// Check if the contact points from the previous frame are reusable and if so copy them
 	bool pair_handled = false, constraint_created = false;

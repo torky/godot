@@ -167,6 +167,9 @@ void PhysicsServer3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_space_step, "space", "delta")
 	GDVIRTUAL_BIND(_space_flush_queries, "space")
 	GDVIRTUAL_BIND(_space_flush_pending_objects, "space")
+	GDVIRTUAL_BIND(_space_canonicalize, "space")
+	GDVIRTUAL_BIND(_space_get_state_hash, "space")
+	GDVIRTUAL_BIND(_space_get_body_state_hashes, "space")
 
 	GDVIRTUAL_BIND(_space_set_param, "space", "param", "value");
 	GDVIRTUAL_BIND(_space_get_param, "space", "param");

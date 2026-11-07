@@ -240,6 +240,26 @@ void JoltPhysicsServer3D::space_flush_pending_objects(RID p_space) {
 	space->flush_pending_objects();
 }
 
+void JoltPhysicsServer3D::space_canonicalize(RID p_space) {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL(space);
+	space->canonicalize();
+}
+
+int64_t JoltPhysicsServer3D::space_get_state_hash(RID p_space) const {
+	const JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL_V(space, 0);
+	return space->get_state_hash(nullptr);
+}
+
+PackedInt64Array JoltPhysicsServer3D::space_get_body_state_hashes(RID p_space) const {
+	const JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL_V(space, PackedInt64Array());
+	PackedInt64Array bodies;
+	space->get_state_hash(&bodies);
+	return bodies;
+}
+
 void JoltPhysicsServer3D::space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) {
 	JoltSpace3D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL(space);

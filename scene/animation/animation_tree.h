@@ -343,6 +343,11 @@ public:
 	void set_advance_expression_base_node(const NodePath &p_path);
 	NodePath get_advance_expression_base_node() const;
 
+	// Whether the next process seeks every node to its start (armed on activation). Part of the playback state, so a tree
+	// restored mid-animation from saved parameters clears it to continue from them like the tree it was saved from.
+	void set_start_pending(bool p_pending) { started = p_pending; }
+	bool is_start_pending() const { return started; }
+
 	PackedStringArray get_configuration_warnings() const override;
 
 	bool is_state_invalid() const;

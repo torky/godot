@@ -241,6 +241,9 @@ public:
 	EXBIND2(space_step, RID, real_t)
 	EXBIND1(space_flush_queries, RID)
 	EXBIND1(space_flush_pending_objects, RID)
+	EXBIND1(space_canonicalize, RID)
+	EXBIND1RC(int64_t, space_get_state_hash, RID)
+	EXBIND1RC(PackedInt64Array, space_get_body_state_hashes, RID)
 
 	EXBIND3(space_set_param, RID, SpaceParameter, real_t)
 	EXBIND2RC(real_t, space_get_param, RID, SpaceParameter)

@@ -1205,7 +1205,89 @@ Ref<AnimationNodeStateMachineTransition> AnimationNodeStateMachinePlayback::_get
 	return group_end_transition;
 }
 
+namespace {
+constexpr int SIM_STATE_SCALARS = 13;
+constexpr int SIM_STATE_NTI_VALUES = 6;
+constexpr int SIM_STATE_SIZE = SIM_STATE_SCALARS + 2 * SIM_STATE_NTI_VALUES + 1;
+constexpr const char *SIM_STATE_PATH_SEPARATOR = "|";
+
+void append_node_time_info(Array &r_state, const AnimationNode::NodeTimeInfo &p_info) {
+	r_state.push_back(p_info.length);
+	r_state.push_back(p_info.position);
+	r_state.push_back(p_info.delta);
+	r_state.push_back((int)p_info.loop_mode);
+	r_state.push_back(p_info.will_end);
+	r_state.push_back(p_info.is_infinity);
+}
+
+int read_node_time_info(const Array &p_state, int p_index, AnimationNode::NodeTimeInfo &r_info) {
+	r_info.length = p_state[p_index];
+	r_info.position = p_state[p_index + 1];
+	r_info.delta = p_state[p_index + 2];
+	r_info.loop_mode = (Animation::LoopMode)(int)p_state[p_index + 3];
+	r_info.will_end = p_state[p_index + 4];
+	r_info.is_infinity = p_state[p_index + 5];
+	return p_index + SIM_STATE_NTI_VALUES;
+}
+} // namespace
+
+Array AnimationNodeStateMachinePlayback::get_sim_state() const {
+	Array state;
+	state.push_back(String(current));
+	state.push_back(String(fading_from));
+	state.push_back(fading_time);
+	state.push_back(fading_pos);
+	state.push_back(playing);
+	state.push_back(String(start_request));
+	state.push_back(String(travel_request));
+	state.push_back(reset_request);
+	state.push_back(reset_request_on_teleport);
+	state.push_back(_reset_request_for_fading_from);
+	state.push_back(next_request);
+	state.push_back(stop_request);
+	state.push_back(teleport_request);
+	append_node_time_info(state, current_nti);
+	append_node_time_info(state, fadeing_from_nti);
+	String joined;
+	for (int i = 0; i < path.size(); i++) {
+		if (i > 0) {
+			joined += SIM_STATE_PATH_SEPARATOR;
+		}
+		joined += String(path[i]);
+	}
+	state.push_back(joined);
+	return state;
+}
+
+void AnimationNodeStateMachinePlayback::set_sim_state(const Array &p_state) {
+	ERR_FAIL_COND_MSG(p_state.size() != SIM_STATE_SIZE, vformat("State machine sim state has %d values, expected %d.", p_state.size(), SIM_STATE_SIZE));
+	current = StringName(String(p_state[0]));
+	fading_from = StringName(String(p_state[1]));
+	fading_time = p_state[2];
+	fading_pos = p_state[3];
+	playing = p_state[4];
+	start_request = StringName(String(p_state[5]));
+	travel_request = StringName(String(p_state[6]));
+	reset_request = p_state[7];
+	reset_request_on_teleport = p_state[8];
+	_reset_request_for_fading_from = p_state[9];
+	next_request = p_state[10];
+	stop_request = p_state[11];
+	teleport_request = p_state[12];
+	int index = read_node_time_info(p_state, SIM_STATE_SCALARS, current_nti);
+	index = read_node_time_info(p_state, index, fadeing_from_nti);
+	path.clear();
+	const String joined = p_state[index];
+	if (!joined.is_empty()) {
+		for (const String &name : joined.split(SIM_STATE_PATH_SEPARATOR)) {
+			path.push_back(StringName(name));
+		}
+	}
+}
+
 void AnimationNodeStateMachinePlayback::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_sim_state"), &AnimationNodeStateMachinePlayback::get_sim_state);
+	ClassDB::bind_method(D_METHOD("set_sim_state", "state"), &AnimationNodeStateMachinePlayback::set_sim_state);
 	ClassDB::bind_method(D_METHOD("travel", "to_node", "reset_on_teleport"), &AnimationNodeStateMachinePlayback::travel, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("start", "node", "reset"), &AnimationNodeStateMachinePlayback::start, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("next"), &AnimationNodeStateMachinePlayback::next);

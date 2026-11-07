@@ -951,8 +951,10 @@ void PhysicalBone3D::_reload_joint() {
 		return;
 	}
 
-	Transform3D joint_transf = get_global_transform() * joint_offset;
-	Transform3D local_a = body_a->get_global_transform().affine_inverse() * joint_transf;
+	Skeleton3D *skeleton = simulator->get_skeleton();
+	const Transform3D rest_b = (skeleton->get_bone_global_rest(bone_id) * body_offset).orthonormalized();
+	const Transform3D rest_a = (skeleton->get_bone_global_rest(body_a->get_bone_id()) * body_a->get_body_offset()).orthonormalized();
+	Transform3D local_a = rest_a.affine_inverse() * (rest_b * joint_offset);
 	local_a.orthonormalize();
 
 	switch (get_joint_type()) {
