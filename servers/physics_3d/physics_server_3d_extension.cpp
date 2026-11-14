@@ -105,6 +105,7 @@ void PhysicsDirectBodyState3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_collision_mask);
 
 	GDVIRTUAL_BIND(_get_contact_count);
+	// GDVIRTUAL_BIND(_get_transform_updates);
 
 	GDVIRTUAL_BIND(_get_contact_local_position, "contact_idx");
 	GDVIRTUAL_BIND(_get_contact_local_normal, "contact_idx");

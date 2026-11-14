@@ -193,6 +193,9 @@ uint32_t GodotPhysicsDirectBodyState3D::get_collision_mask() const {
 int GodotPhysicsDirectBodyState3D::get_contact_count() const {
 	return body->contact_count;
 }
+// int GodotPhysicsDirectBodyState3D::get_transform_updates() const {
+// 	return -1;
+// }
 
 Vector3 GodotPhysicsDirectBodyState3D::get_contact_local_position(int p_contact_idx) const {
 	ERR_FAIL_INDEX_V(p_contact_idx, body->contact_count, Vector3());

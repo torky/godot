@@ -96,6 +96,7 @@ public:
 	virtual uint32_t get_collision_mask() const = 0;
 
 	virtual int get_contact_count() const = 0;
+	// virtual int get_transform_updates() const = 0;
 
 	virtual Vector3 get_contact_local_position(int p_contact_idx) const = 0;
 	virtual Vector3 get_contact_local_normal(int p_contact_idx) const = 0;

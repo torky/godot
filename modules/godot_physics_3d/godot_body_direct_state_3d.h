@@ -91,6 +91,7 @@ public:
 	virtual uint32_t get_collision_mask() const override;
 
 	virtual int get_contact_count() const override;
+	// virtual int get_transform_updates() const override;
 
 	virtual Vector3 get_contact_local_position(int p_contact_idx) const override;
 	virtual Vector3 get_contact_local_normal(int p_contact_idx) const override;
