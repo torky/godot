@@ -355,6 +355,7 @@ public:
 	};
 
 	virtual void area_add_shape(RID p_area, RID p_shape, const Transform3D &p_transform = Transform3D(), bool p_disabled = false) = 0;
+	virtual void area_add_shapes(RID p_area, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms);
 	virtual void area_set_shape(RID p_area, int p_shape_idx, RID p_shape) = 0;
 	virtual void area_set_shape_transform(RID p_area, int p_shape_idx, const Transform3D &p_transform) = 0;
 
@@ -414,6 +415,7 @@ public:
 	virtual BodyMode body_get_mode(RID p_body) const = 0;
 
 	virtual void body_add_shape(RID p_body, RID p_shape, const Transform3D &p_transform = Transform3D(), bool p_disabled = false) = 0;
+	virtual void body_add_shapes(RID p_body, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms);
 	virtual void body_set_shape(RID p_body, int p_shape_idx, RID p_shape) = 0;
 	virtual void body_set_shape_transform(RID p_body, int p_shape_idx, const Transform3D &p_transform) = 0;
 

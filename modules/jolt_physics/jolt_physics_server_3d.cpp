@@ -30,6 +30,7 @@
 
 #include "jolt_physics_server_3d.h"
 
+#include "core/variant/typed_array.h"
 #include "joints/jolt_cone_twist_joint_3d.h"
 #include "joints/jolt_generic_6dof_joint_3d.h"
 #include "joints/jolt_hinge_joint_3d.h"
@@ -371,6 +372,27 @@ void JoltPhysicsServer3D::area_add_shape(RID p_area, RID p_shape, const Transfor
 	area->add_shape(shape, p_transform, p_disabled);
 }
 
+void JoltPhysicsServer3D::area_add_shapes(RID p_area, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) {
+	JoltArea3D *area = area_owner.get_or_null(p_area);
+	ERR_FAIL_NULL(area);
+
+	Vector<JoltShape3D *> shapes;
+	shapes.resize(p_shapes.size());
+	for (int i = 0; i < p_shapes.size(); i++) {
+		JoltShape3D *shape = shape_owner.get_or_null(p_shapes[i]);
+		ERR_FAIL_NULL(shape);
+		shapes.write[i] = shape;
+	}
+
+	Vector<Transform3D> transforms;
+	transforms.resize(p_transforms.size());
+	for (int i = 0; i < p_transforms.size(); i++) {
+		transforms.write[i] = p_transforms[i];
+	}
+
+	area->add_shapes(shapes, transforms);
+}
+
 void JoltPhysicsServer3D::area_set_shape(RID p_area, int p_shape_idx, RID p_shape) {
 	JoltArea3D *area = area_owner.get_or_null(p_area);
 	ERR_FAIL_NULL(area);
@@ -615,6 +637,27 @@ void JoltPhysicsServer3D::body_add_shape(RID p_body, RID p_shape, const Transfor
 	ERR_FAIL_NULL(shape);
 
 	body->add_shape(shape, p_transform, p_disabled);
+}
+
+void JoltPhysicsServer3D::body_add_shapes(RID p_body, const TypedArray<RID> &p_shapes, const TypedArray<Transform3D> &p_transforms) {
+	JoltBody3D *body = body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL(body);
+
+	Vector<JoltShape3D *> shapes;
+	shapes.resize(p_shapes.size());
+	for (int i = 0; i < p_shapes.size(); i++) {
+		JoltShape3D *shape = shape_owner.get_or_null(p_shapes[i]);
+		ERR_FAIL_NULL(shape);
+		shapes.write[i] = shape;
+	}
+
+	Vector<Transform3D> transforms;
+	transforms.resize(p_transforms.size());
+	for (int i = 0; i < p_transforms.size(); i++) {
+		transforms.write[i] = p_transforms[i];
+	}
+
+	body->add_shapes(shapes, transforms);
 }
 
 void JoltPhysicsServer3D::body_set_shape(RID p_body, int p_shape_idx, RID p_shape) {

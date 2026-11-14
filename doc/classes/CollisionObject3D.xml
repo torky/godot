@@ -180,6 +180,11 @@
 				Sets the [Transform3D] of the given shape owner.
 			</description>
 		</method>
+		<method name="sync_transform_to_physics">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="collision_layer" type="int" setter="set_collision_layer" getter="get_collision_layer" default="1">

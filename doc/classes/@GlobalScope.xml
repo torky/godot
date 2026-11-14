@@ -362,6 +362,164 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="deterministic_acos">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_acosf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_acosh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_acoshf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_asin">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_asinf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_asinh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_asinhf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atan">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atan2">
+			<return type="float" />
+			<param index="0" name="y" type="float" />
+			<param index="1" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atan2f">
+			<return type="float" />
+			<param index="0" name="y" type="float" />
+			<param index="1" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atanf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atanh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_atanhf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_cos">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_cosf">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_cosh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_coshf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_sin">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_sinf">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_sinh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_sinhf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_tan">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_tanf">
+			<return type="float" />
+			<param index="0" name="angle_rad" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_tanh">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="deterministic_tanhf">
+			<return type="float" />
+			<param index="0" name="x" type="float" />
+			<description>
+			</description>
+		</method>
 		<method name="ease" keywords="smooth">
 			<return type="float" />
 			<param index="0" name="x" type="float" />
