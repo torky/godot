@@ -723,6 +723,7 @@ void PhysicsServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("space_is_active", "space"), &PhysicsServer3D::space_is_active);
 	ClassDB::bind_method(D_METHOD("space_step", "space", "delta"), &PhysicsServer3D::space_step);
 	ClassDB::bind_method(D_METHOD("space_flush_queries", "space"), &PhysicsServer3D::space_flush_queries);
+	ClassDB::bind_method(D_METHOD("space_flush_pending_objects", "space"), &PhysicsServer3D::space_flush_pending_objects);
 	ClassDB::bind_method(D_METHOD("space_set_param", "space", "param", "value"), &PhysicsServer3D::space_set_param);
 	ClassDB::bind_method(D_METHOD("space_get_param", "space", "param"), &PhysicsServer3D::space_get_param);
 	ClassDB::bind_method(D_METHOD("space_get_time", "space"), &PhysicsServer3D::space_get_time);
@@ -1056,6 +1057,9 @@ void PhysicsServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_process_info", "process_info"), &PhysicsServer3D::get_process_info);
 	ClassDB::bind_method(D_METHOD("space_get_last_process_info", "space", "process_info"), &PhysicsServer3D::space_get_last_process_info);
+
+	ClassDB::bind_method(D_METHOD("space_get_body_checksum", "space"), &PhysicsServer3D::space_get_body_checksum);
+	ClassDB::bind_method(D_METHOD("space_get_body_checksums", "space"), &PhysicsServer3D::space_get_body_checksums);
 
 	BIND_ENUM_CONSTANT(SHAPE_WORLD_BOUNDARY);
 	BIND_ENUM_CONSTANT(SHAPE_SEPARATION_RAY);

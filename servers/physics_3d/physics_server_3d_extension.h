@@ -240,6 +240,7 @@ public:
 	EXBIND1RC(bool, space_is_active, RID)
 	EXBIND2(space_step, RID, real_t)
 	EXBIND1(space_flush_queries, RID)
+	EXBIND1(space_flush_pending_objects, RID)
 
 	EXBIND3(space_set_param, RID, SpaceParameter, real_t)
 	EXBIND2RC(real_t, space_get_param, RID, SpaceParameter)
@@ -553,6 +554,9 @@ public:
 	EXBIND0RC(bool, is_flushing_queries)
 	EXBIND1R(int, get_process_info, ProcessInfo)
 	EXBIND2R(int, space_get_last_process_info, RID, ProcessInfo)
+
+	EXBIND1R(int, space_get_body_checksum, RID)
+	EXBIND1R(Dictionary, space_get_body_checksums, RID)
 
 	PhysicsServer3DExtension();
 	~PhysicsServer3DExtension();

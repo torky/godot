@@ -156,6 +156,7 @@ public:
 	virtual bool space_is_active(RID p_space) const override;
 	virtual void space_step(RID p_space, real_t p_delta) override;
 	virtual void space_flush_queries(RID p_space) override;
+	virtual void space_flush_pending_objects(RID p_space) override;
 
 	virtual void space_set_param(RID p_space, PhysicsServer3D::SpaceParameter p_param, real_t p_value) override;
 	virtual real_t space_get_param(RID p_space, PhysicsServer3D::SpaceParameter p_param) const override;
@@ -434,6 +435,9 @@ public:
 
 	virtual int get_process_info(PhysicsServer3D::ProcessInfo p_process_info) override;
 	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) override;
+
+	virtual int space_get_body_checksum(RID p_space) override;
+	virtual Dictionary space_get_body_checksums(RID p_space) override;
 
 	bool is_on_separate_thread() const { return on_separate_thread; }
 	bool is_active() const { return active; }

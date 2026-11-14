@@ -115,6 +115,7 @@ public:
 	FUNC1RC(bool, space_is_active, RID);
 	FUNC2(space_step, RID, real_t);
 	FUNC1(space_flush_queries, RID);
+	FUNC1(space_flush_pending_objects, RID);
 
 	FUNC3(space_set_param, RID, SpaceParameter, real_t);
 	FUNC2RC(real_t, space_get_param, RID, SpaceParameter);
@@ -416,6 +417,13 @@ public:
 
 	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) override {
 		return physics_server_3d->space_get_last_process_info(p_space, p_info);
+	}
+
+	virtual int space_get_body_checksum(RID p_space) override {
+		return physics_server_3d->space_get_body_checksum(p_space);
+	}
+	virtual Dictionary space_get_body_checksums(RID p_space) override {
+		return physics_server_3d->space_get_body_checksums(p_space);
 	}
 
 	PhysicsServer3DWrapMT(PhysicsServer3D *p_contained, bool p_create_thread);
