@@ -70,6 +70,11 @@
 				Returns the playback position of the current fade animation. Returns [code]0[/code] if no animation fade is occurring.
 			</description>
 		</method>
+		<method name="get_sim_state" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
 		<method name="get_travel_path" qualifiers="const">
 			<return type="StringName[]" />
 			<description>
@@ -86,6 +91,12 @@
 			<return type="void" />
 			<description>
 				If there is a next path by travel or auto advance, immediately transitions from the current state to the next state.
+			</description>
+		</method>
+		<method name="set_sim_state">
+			<return type="void" />
+			<param index="0" name="state" type="Array" />
+			<description>
 			</description>
 		</method>
 		<method name="start">

@@ -1403,6 +1403,12 @@
 				Requests that the physics server updates the rendering server with the latest positions of the given soft body's points through the [param rendering_server_handler] interface.
 			</description>
 		</method>
+		<method name="space_canonicalize">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="space_create">
 			<return type="RID" />
 			<description>
@@ -1434,6 +1440,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="space_get_body_state_hashes" qualifiers="const">
+			<return type="PackedInt64Array" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="space_get_direct_state">
 			<return type="PhysicsDirectSpaceState3D" />
 			<param index="0" name="space" type="RID" />
@@ -1455,6 +1467,12 @@
 			<param index="1" name="param" type="int" enum="PhysicsServer3D.SpaceParameter" />
 			<description>
 				Returns the value of a space parameter.
+			</description>
+		</method>
+		<method name="space_get_state_hash" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<description>
 			</description>
 		</method>
 		<method name="space_get_time" qualifiers="const">

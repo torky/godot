@@ -16,6 +16,11 @@
 				Returns the remaining seconds of the time-based interpolation.
 			</description>
 		</method>
+		<method name="get_sim_state" qualifiers="const">
+			<return type="PackedFloat32Array" />
+			<description>
+			</description>
+		</method>
 		<method name="is_interpolating" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -28,6 +33,12 @@
 			<description>
 				Returns whether the target is within the angle limitations. It is useful for unsetting the [member target_node] when the target is outside of the angle limitations.
 				[b]Note:[/b] The value is updated after [method SkeletonModifier3D._process_modification]. To retrieve this value correctly, we recommend using the signal [signal SkeletonModifier3D.modification_processed].
+			</description>
+		</method>
+		<method name="set_sim_state">
+			<return type="void" />
+			<param index="0" name="state" type="PackedFloat32Array" />
+			<description>
 			</description>
 		</method>
 	</methods>

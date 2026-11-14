@@ -18,11 +18,22 @@
 				Returns the process notification in which to update animations.
 			</description>
 		</method>
+		<method name="is_start_pending" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
 		<method name="set_process_callback" deprecated="Use [member AnimationMixer.callback_mode_process] instead.">
 			<return type="void" />
 			<param index="0" name="mode" type="int" enum="AnimationTree.AnimationProcessCallback" />
 			<description>
 				Sets the process notification in which to update animations.
+			</description>
+		</method>
+		<method name="set_start_pending">
+			<return type="void" />
+			<param index="0" name="pending" type="bool" />
+			<description>
 			</description>
 		</method>
 	</methods>

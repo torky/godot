@@ -1252,8 +1252,44 @@
 			<description>
 			</description>
 		</method>
+		<method name="_space_canonicalize" qualifiers="virtual required">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="_space_create" qualifiers="virtual required">
 			<return type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_flush_pending_objects" qualifiers="virtual required">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_flush_queries" qualifiers="virtual required">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_body_checksum" qualifiers="virtual required">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_body_checksums" qualifiers="virtual required">
+			<return type="Dictionary" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_body_state_hashes" qualifiers="virtual required const">
+			<return type="PackedInt64Array" />
+			<param index="0" name="space" type="RID" />
 			<description>
 			</description>
 		</method>
@@ -1275,10 +1311,29 @@
 			<description>
 			</description>
 		</method>
+		<method name="_space_get_last_process_info" qualifiers="virtual required">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<param index="1" name="process_info" type="int" enum="PhysicsServer3D.ProcessInfo" />
+			<description>
+			</description>
+		</method>
 		<method name="_space_get_param" qualifiers="virtual required const">
 			<return type="float" />
 			<param index="0" name="space" type="RID" />
 			<param index="1" name="param" type="int" enum="PhysicsServer3D.SpaceParameter" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_state_hash" qualifiers="virtual required const">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_get_time" qualifiers="virtual required const">
+			<return type="float" />
+			<param index="0" name="space" type="RID" />
 			<description>
 			</description>
 		</method>
@@ -1307,6 +1362,13 @@
 			<param index="0" name="space" type="RID" />
 			<param index="1" name="param" type="int" enum="PhysicsServer3D.SpaceParameter" />
 			<param index="2" name="value" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="_space_step" qualifiers="virtual required">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<param index="1" name="delta" type="float" />
 			<description>
 			</description>
 		</method>
