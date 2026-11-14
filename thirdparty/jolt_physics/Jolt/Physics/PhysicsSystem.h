@@ -268,6 +268,10 @@ public:
 				body->ResetStableKey();
 	}
 
+	/// Renumber every body's creation order from its stable key and tie key (see BodyManager::ResetCreationOrder); call after ResetStableKeys.
+	/// Not thread safe, call only when PhysicsSystem::Update is not running.
+	uint						ResetCreationOrder()										{ return mBodyManager.ResetCreationOrder(); }
+
 	/// TEMP diagnostics: see ContactConstraintManager::ForEachCachedContactPoint
 	template <class Visitor>
 	void						ForEachCachedContactPoint(const Visitor &inVisitor)	{ mContactManager.ForEachCachedContactPoint(inVisitor); }

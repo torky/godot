@@ -322,7 +322,7 @@ public:
 	/// Recompute the stable key from the current motion type, sensor flag, pose and shape bounds
 	void					ResetStableKey();
 
-	/// Order on the stable keys; the BodyID only breaks a full tie, which is counted in sStableKeyTies
+	/// Order on the stable keys; a full tie falls back to the creation order, never the BodyID (which depends on the free list history)
 	inline bool				IsStableLess(const Body &inRHS) const
 	{
 		if (mStableKey != inRHS.mStableKey)
@@ -332,15 +332,14 @@ public:
 		uint32 lhs_tie = ComputeTieKey(), rhs_tie = inRHS.ComputeTieKey();
 		if (lhs_tie != rhs_tie)
 			return lhs_tie < rhs_tie;
-		sStableKeyTies.fetch_add(1, memory_order_relaxed);
-		return mID < inRHS.mID;
+		return mCreationOrder < inRHS.mCreationOrder;
 	}
 
 	/// Hash of the current pose, velocity, mass, material, layer and shape, used when two stable keys tie
 	uint32					ComputeTieKey() const;
 
-	/// Number of comparisons between distinct bodies whose stable keys were equal, so the order fell back to the BodyID
-	static inline atomic<uint32> sStableKeyTies { 0 };
+	/// Position of this body in the order bodies were added to the body manager, renumbered by BodyManager::ResetCreationOrder
+	inline uint64			GetCreationOrder() const										{ return mCreationOrder; }
 
 	/// Get surface normal of a particular sub shape and its world space surface position on this body
 	inline Vec3				GetWorldSpaceSurfaceNormal(const SubShapeID &inSubShapeID, RVec3Arg inPosition) const;
@@ -451,6 +450,7 @@ private:
 	RefConst<Shape>			mShape;															///< Shape representing the volume of this body
 	MotionProperties *		mMotionProperties = nullptr;									///< If this is a keyframed or dynamic object, this object holds all information about the movement
 	uint64					mUserData = 0;													///< User data, can be used for anything by the application
+	uint64					mCreationOrder = 0;												///< See GetCreationOrder
 	CollisionGroup			mCollisionGroup;												///< The collision group this body belongs to (determines if two objects can collide)
 
 	// 4 byte aligned
@@ -471,7 +471,7 @@ private:
 	// 122 bytes up to here (64-bit mode, single precision, 16-bit ObjectLayer)
 };
 
-static_assert(JPH_CPU_ADDRESS_BITS != 64 || JPH_RVECTOR_ALIGNMENT < 16 || sizeof(Body) == JPH_IF_SINGLE_PRECISION_ELSE(128, 160), "Body size is incorrect");
+static_assert(JPH_CPU_ADDRESS_BITS != 64 || JPH_RVECTOR_ALIGNMENT < 16 || sizeof(Body) == JPH_IF_SINGLE_PRECISION_ELSE(144, 160), "Body size is incorrect");
 static_assert(alignof(Body) == max(JPH_VECTOR_ALIGNMENT, JPH_RVECTOR_ALIGNMENT), "Body should properly align");
 
 JPH_NAMESPACE_END

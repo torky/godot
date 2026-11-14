@@ -135,6 +135,10 @@ public:
 	/// Get all bodies. Note that this can contain invalid body pointers, call sIsValidBodyPointer to check.
 	BodyVector &					GetBodies()									{ return mBodies; }
 
+	/// Renumber the creation order of every body by its stable key and tie key (old creation order last), so that systems with equal body states but different creation histories agree on it.
+	/// Returns the number of adjacent bodies that tied on both keys, whose relative order still comes from history. Not thread safe.
+	uint							ResetCreationOrder();
+
 	/// Get all body IDs under the protection of a lock
 	void							GetBodyIDs(BodyIDVector &outBodies) const;
 
@@ -330,6 +334,9 @@ private:
 
 	/// Index of first entry in mBodies that is unused
 	uintptr_t						mBodyIDFreeListStart = cBodyIDFreeListEnd;
+
+	/// Creation order handed to the next added body, see Body::GetCreationOrder
+	uint64							mNextCreationOrder = 0;
 
 	/// Protects mBodies array (but not the bodies it points to), mNumBodies and mBodyIDFreeListStart
 	mutable Mutex					mBodiesMutex;

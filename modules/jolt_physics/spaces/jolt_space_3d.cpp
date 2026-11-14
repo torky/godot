@@ -205,13 +205,6 @@ void JoltSpace3D::step(float p_step) {
 
 	const JPH::EPhysicsUpdateError update_error = physics_system->Update(p_step, 1, temp_allocator, job_system);
 
-	static uint32_t reported_stable_key_ties = 0;
-	const uint32_t stable_key_ties = JPH::Body::sStableKeyTies.load(std::memory_order_relaxed);
-	if (stable_key_ties != reported_stable_key_ties) {
-		reported_stable_key_ties = stable_key_ties;
-		ERR_PRINT(vformat("Jolt stable key tie between distinct bodies (%d so far): their order fell back to the BodyID, which differs between a joiner and live clients.", stable_key_ties));
-	}
-
 	if (dump_keys_next_step == 1) {
 		_dump_stable_keys(vformat("%s.%d.%d.post1.txt", OS::get_singleton()->get_environment("JOLT_STABLE_KEY_DUMP"), OS::get_singleton()->get_process_id(), dump_canonicalize_count));
 	}
@@ -514,6 +507,10 @@ void JoltSpace3D::canonicalize() {
 	}
 
 	physics_system->ResetStableKeys();
+	const uint32_t creation_order_ties = physics_system->ResetCreationOrder();
+	if (creation_order_ties > 0) {
+		ERR_PRINT(vformat("Jolt canonicalize found %d pair(s) of bodies identical in pose, velocity, shape and material: their order still comes from their creation history, which differs between a joiner and live clients.", creation_order_ties));
+	}
 	physics_system->ResetWarmStart();
 	physics_system->ResetContactCache();
 	contact_listener->clear_contacts();
@@ -841,7 +838,7 @@ void JoltSpace3D::_dump_stable_keys(const String &p_path) const {
 		const JPH::Quat q = body->GetRotation();
 		const JPH::AABox b = body->GetShape()->GetLocalBounds();
 		String line = name + "\tkey=" + String::num_uint64(body->GetStableKey(), 16).lpad(8, "0");
-		line += "\tm=" + itos(int(body->GetMotionType())) + "\ts=" + itos(body->IsSensor() ? 1 : 0);
+		line += "\tm=" + itos(int(body->GetMotionType())) + "\ts=" + itos(body->IsSensor() ? 1 : 0) + "\tco=" + String::num_uint64(body->GetCreationOrder());
 		line += "\tp=" + _float_bits(float(p.GetX())) + "," + _float_bits(float(p.GetY())) + "," + _float_bits(float(p.GetZ()));
 		line += "\tq=" + _float_bits(q.GetX()) + "," + _float_bits(q.GetY()) + "," + _float_bits(q.GetZ()) + "," + _float_bits(q.GetW());
 		if (object != nullptr && object->as_body() != nullptr && body->IsDynamic()) {
