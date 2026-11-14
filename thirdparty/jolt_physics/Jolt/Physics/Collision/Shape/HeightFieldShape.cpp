@@ -2190,7 +2190,7 @@ void HeightFieldShape::CastRay(const RayCast &inRay, const RayCastSettings &inRa
 
 		JPH_INLINE bool			ShouldVisitRangeBlock(int inStackTop) const
 		{
-			return mDistanceStack[inStackTop] < mCollector.GetEarlyOutFraction();
+			return mDistanceStack[inStackTop] <= mCollector.GetEarlyOutFraction(); // Use <= for determinism
 		}
 
 		JPH_INLINE int			VisitRangeBlock(Vec4Arg inBoundsMinX, Vec4Arg inBoundsMinY, Vec4Arg inBoundsMinZ, Vec4Arg inBoundsMaxX, Vec4Arg inBoundsMaxY, Vec4Arg inBoundsMaxZ, UVec4 &ioProperties, int inStackTop)
@@ -2210,7 +2210,7 @@ void HeightFieldShape::CastRay(const RayCast &inRay, const RayCastSettings &inRa
 
 			// Check the triangle
 			float fraction = RayTriangle(mRayOrigin, mRayDirection, inV0, inV1, inV2);
-			if (fraction < mCollector.GetEarlyOutFraction())
+			if (fraction <= mCollector.GetEarlyOutFraction()) // Use <= for determinism
 			{
 				RayCastResult hit;
 				hit.mBodyID = TransformedShape::sGetBodyID(mCollector.GetContext());

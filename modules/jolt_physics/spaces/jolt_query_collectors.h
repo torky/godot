@@ -38,6 +38,31 @@
 #include <Jolt/Physics/Collision/InternalEdgeRemovingCollector.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 
+#include <type_traits>
+
+template <typename T, typename = void>
+struct has_mBodyID : std::false_type {};
+
+template <typename T>
+struct has_mBodyID<T, std::void_t<decltype(std::declval<T>().mBodyID)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct has_mBodyID2 : std::false_type {};
+
+template <typename T>
+struct has_mBodyID2<T, std::void_t<decltype(std::declval<T>().mBodyID2)>> : std::true_type {};
+
+template <typename Hit>
+inline uint64_t GetHitBodySortKey(const Hit &hit) {
+	if constexpr (has_mBodyID<Hit>::value) {
+		return hit.mBodyID.GetIndexAndSequenceNumber();
+	} else if constexpr (has_mBodyID2<Hit>::value) {
+		return hit.mBodyID2.GetIndexAndSequenceNumber();
+	} else {
+		return 0;
+	}
+}
+
 template <typename TBase, int TDefaultCapacity>
 class JoltQueryCollectorAll : public TBase {
 public:
@@ -163,11 +188,14 @@ public:
 private:
 	Hit hit;
 	bool valid = false;
+	int total_hits_considered = 0;
 
 public:
 	bool had_hit() const { return valid; }
 
 	const Hit &get_hit() const { return hit; }
+
+	int get_total_hits_considered() const { return total_hits_considered; }
 
 	void reset() {
 		Reset();
@@ -176,16 +204,25 @@ public:
 	virtual void Reset() override {
 		TBase::Reset();
 		valid = false;
+		total_hits_considered = 0;
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
+		total_hits_considered++;
 		const float early_out = p_hit.GetEarlyOutFraction();
+		const float current_fraction = hit.GetEarlyOutFraction();
 
-		if (!valid || early_out < hit.GetEarlyOutFraction()) {
+		if (!valid) {
 			TBase::UpdateEarlyOutFraction(early_out);
-
 			hit = p_hit;
 			valid = true;
+		} else if (early_out == current_fraction) {
+			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
+				hit = p_hit;
+			}
+		} else if (early_out < current_fraction) {
+			TBase::UpdateEarlyOutFraction(early_out);
+			hit = p_hit;
 		}
 	}
 };
@@ -228,9 +265,15 @@ public:
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
+		const float new_fraction = p_hit.GetEarlyOutFraction();
 		typename HitArray::const_iterator E = hits.cbegin();
 		for (; E != hits.cend(); ++E) {
-			if (p_hit.GetEarlyOutFraction() < E->GetEarlyOutFraction()) {
+			const float existing_fraction = E->GetEarlyOutFraction();
+			if (new_fraction == existing_fraction) {
+				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
+					break;
+				}
+			} else if (new_fraction < existing_fraction) {
 				break;
 			}
 		}

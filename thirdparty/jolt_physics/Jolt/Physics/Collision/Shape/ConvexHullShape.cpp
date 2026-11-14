@@ -1018,7 +1018,7 @@ void ConvexHullShape::CastRay(const RayCast &inRay, const RayCastSettings &inRay
 	// Determine if ray hits the shape
 	float min_fraction, max_fraction;
 	if (CastRayHelper(inRay, min_fraction, max_fraction)
-		&& min_fraction < ioCollector.GetEarlyOutFraction()) // Check if this is closer than the early out fraction
+		&& min_fraction <= ioCollector.GetEarlyOutFraction()) // Check if this is closer than or at the early out fraction (for determinism)
 	{
 		// Better hit than the current hit
 		RayCastResult hit;
@@ -1034,7 +1034,7 @@ void ConvexHullShape::CastRay(const RayCast &inRay, const RayCastSettings &inRay
 
 		// Check back side hit
 		if (inRayCastSettings.mBackFaceModeConvex == EBackFaceMode::CollideWithBackFaces
-			&& max_fraction < ioCollector.GetEarlyOutFraction())
+			&& max_fraction <= ioCollector.GetEarlyOutFraction())
 		{
 			hit.mFraction = max_fraction;
 			ioCollector.AddHit(hit);

@@ -253,7 +253,7 @@ void TriangleShape::CastRay(const RayCast &inRay, const RayCastSettings &inRayCa
 
 	// Test ray against triangle
 	float fraction = RayTriangle(inRay.mOrigin, inRay.mDirection, mV1, mV2, mV3);
-	if (fraction < ioCollector.GetEarlyOutFraction())
+	if (fraction <= ioCollector.GetEarlyOutFraction()) // Use <= for determinism
 	{
 		// Better hit than the current hit
 		RayCastResult hit;

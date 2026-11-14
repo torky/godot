@@ -380,6 +380,7 @@ Dictionary PhysicsDirectSpaceState3D::_intersect_ray(RequiredParam<PhysicsRayQue
 	d["collider"] = result.collider;
 	d["shape"] = result.shape;
 	d["rid"] = result.rid;
+	d["fraction"] = result.fraction;
 
 	return d;
 }

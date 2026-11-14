@@ -6,9 +6,9 @@
 
 JPH_NAMESPACE_BEGIN
 
-/// This function will sort values from high to low and only keep the ones that are less than inMaxValue
+/// This function will sort values from high to low and only keep the ones that are less than or equal to inMaxValue
 /// @param inValues Values to be sorted
-/// @param inMaxValue Values need to be less than this to keep them
+/// @param inMaxValue Values need to be less than or equal to this to keep them
 /// @param ioIdentifiers 4 identifiers that will be sorted in the same way as the values
 /// @param outValues The values are stored here from high to low
 /// @return The number of values that were kept
@@ -18,8 +18,8 @@ JPH_INLINE int SortReverseAndStore(Vec4Arg inValues, float inMaxValue, UVec4 &io
 	Vec4 values = inValues;
 	Vec4::sSort4Reverse(values, ioIdentifiers);
 
-	// Count how many results are less than the max value
-	UVec4 closer = Vec4::sLess(values, Vec4::sReplicate(inMaxValue));
+	// Count how many results are less than or equal to the max value
+	UVec4 closer = Vec4::sLessOrEqual(values, Vec4::sReplicate(inMaxValue));
 	int num_results = closer.CountTrues();
 
 	// Shift the values so that only the ones that are less than max are kept
