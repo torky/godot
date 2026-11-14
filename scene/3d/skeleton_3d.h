@@ -200,6 +200,7 @@ private:
 	// Global bone pose calculation.
 	mutable LocalVector<int> nested_set_offset_to_bone_index; // Map from Bone::nested_set_offset to bone index.
 	mutable LocalVector<bool> bone_global_pose_dirty; // Indexable with Bone::nested_set_offset.
+	LocalVector<Transform3D> modified_bone_local_poses; // Cached modified local poses after modifiers run.
 	void _update_bones_nested_set() const;
 	int _update_bone_nested_set(int p_bone, int p_offset) const;
 	void _make_bone_global_poses_dirty() const;
@@ -280,6 +281,7 @@ public:
 	void set_bone_pose_scale(int p_bone, const Vector3 &p_scale);
 
 	Transform3D get_bone_global_pose(int p_bone) const;
+	Transform3D get_bone_global_pose_modified(int p_bone) const;
 	void set_bone_global_pose(int p_bone, const Transform3D &p_pose);
 
 	void reset_bone_pose(int p_bone);
@@ -298,6 +300,7 @@ public:
 	void force_update_bone_children_transforms(int bone_idx);
 	void _force_update_bone_children_transforms(int bone_idx) const;
 	void force_update_deferred();
+	void force_update_bone_transforms_with_modifiers(double p_delta = 0.0);
 
 	void set_modifier_callback_mode_process(ModifierCallbackModeProcess p_mode);
 	ModifierCallbackModeProcess get_modifier_callback_mode_process() const;
