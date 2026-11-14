@@ -86,6 +86,34 @@
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
 
+// FPU state setup for determinism (flush denormals to zero)
+#if defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_X64) || defined(_M_AMD64)
+#include <pmmintrin.h>
+#include <xmmintrin.h>
+#define GODOT_FP_MODE_SSE2
+#elif defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM64)
+#define GODOT_FP_MODE_ARM64
+#elif defined(__arm__) || defined(_M_ARM)
+#define GODOT_FP_MODE_ARM32
+#endif
+
+static void setup_fpu_state() {
+#if defined(GODOT_FP_MODE_SSE2)
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#elif defined(GODOT_FP_MODE_ARM64)
+	uint64_t fpcr;
+	__asm__ __volatile__("mrs %0, fpcr" : "=r"(fpcr));
+	fpcr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("msr fpcr, %0" : : "r"(fpcr));
+#elif defined(GODOT_FP_MODE_ARM32)
+	uint32_t fpscr;
+	__asm__ __volatile__("vmrs %0, fpscr" : "=r"(fpscr));
+	fpscr |= (1 << 24); // FZ bit - flush denormals to zero
+	__asm__ __volatile__("vmsr fpscr, %0" : : "r"(fpscr));
+#endif
+}
+
 // 2D
 #ifndef NAVIGATION_2D_DISABLED
 #include "servers/navigation_2d/navigation_server_2d.h"
@@ -1034,6 +1062,8 @@ int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
 
 Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_phase) {
 	GodotProfileZone("setup");
+	setup_fpu_state();
+
 	Thread::make_main_thread();
 	set_current_thread_safe_for_nodes(true);
 
