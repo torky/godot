@@ -53,6 +53,7 @@
 #include "core/os/thread.h"
 #include "core/os/thread_safe.h"
 #include "core/profiling/profiling.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 #include "servers/camera/camera_server.h"
 #include "servers/rendering/rendering_server.h"
@@ -192,6 +193,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_ondestroy(JNIEnv *env
 }
 
 JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jclass clazz, jobjectArray p_cmdline, jobject p_godot_tts) {
+	fp_deterministic_init();
 	setup_android_thread();
 
 	const char **cmdline = nullptr;

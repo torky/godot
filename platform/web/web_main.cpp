@@ -37,6 +37,7 @@
 #include "core/os/main_loop.h"
 #include "core/os/os.h"
 #include "core/profiling/profiling.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 
 #ifdef TOOLS_ENABLED
@@ -131,6 +132,7 @@ void print_web_header() {
 
 /// When calling main, it is assumed FS is setup and synced.
 extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
+	fp_deterministic_init();
 	godot_init_profiler();
 
 	os = new OS_Web();

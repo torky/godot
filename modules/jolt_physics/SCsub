@@ -156,6 +156,9 @@ if env.editor_build:
 if env["precision"] == "double":
     env_jolt.Append(CPPDEFINES=["JPH_DOUBLE_PRECISION"])
 
+# Enable cross-platform deterministic physics for consistent results across Windows/Linux/ARM/x86
+env_jolt.Append(CPPDEFINES=["JPH_CROSS_PLATFORM_DETERMINISTIC"])
+
 env_thirdparty = env_jolt.Clone()
 env_thirdparty.disable_warnings()
 

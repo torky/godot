@@ -31,6 +31,7 @@
 #include "os_linuxbsd.h"
 
 #include "core/profiling/profiling.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 
 #include <unistd.h>
@@ -68,6 +69,8 @@ extern "C" const char *pck_section_dummy_call() {
 #endif
 
 int main(int argc, char *argv[]) {
+	fp_deterministic_init();
+
 #if defined(__x86_64) || defined(__x86_64__)
 	int cpuinfo[4];
 	__cpuid(cpuinfo, 0x01);

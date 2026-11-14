@@ -33,6 +33,7 @@
 #include "core/profiling/profiling.h"
 #import "drivers/apple_embedded/godot_app_delegate.h"
 #import "drivers/apple_embedded/main_utilities.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 
 #import <UIKit/UIKit.h>
@@ -42,6 +43,8 @@
 static OS_VisionOS *os = nullptr;
 
 int apple_embedded_main(int argc, char **argv) {
+	fp_deterministic_init();
+
 	change_to_launch_dir(argv);
 
 	os = new OS_VisionOS();

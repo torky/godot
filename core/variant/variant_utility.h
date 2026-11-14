@@ -114,6 +114,35 @@ struct VariantUtilityFunctions {
 	static double clampf(double x, double min, double max);
 	static int64_t clampi(int64_t x, int64_t min, int64_t max);
 	static int64_t nearest_po2(int64_t x);
+
+	// Deterministic Math (for cross-platform reproducibility)
+	static double deterministic_sin(double arg);
+	static float deterministic_sinf(float arg);
+	static double deterministic_cos(double arg);
+	static float deterministic_cosf(float arg);
+	static double deterministic_tan(double arg);
+	static float deterministic_tanf(float arg);
+	static double deterministic_asin(double arg);
+	static float deterministic_asinf(float arg);
+	static double deterministic_acos(double arg);
+	static float deterministic_acosf(float arg);
+	static double deterministic_atan(double arg);
+	static float deterministic_atanf(float arg);
+	static double deterministic_atan2(double y, double x);
+	static float deterministic_atan2f(float y, float x);
+	static double deterministic_sinh(double arg);
+	static float deterministic_sinhf(float arg);
+	static double deterministic_cosh(double arg);
+	static float deterministic_coshf(float arg);
+	static double deterministic_tanh(double arg);
+	static float deterministic_tanhf(float arg);
+	static double deterministic_asinh(double arg);
+	static float deterministic_asinhf(float arg);
+	static double deterministic_acosh(double arg);
+	static float deterministic_acoshf(float arg);
+	static double deterministic_atanh(double arg);
+	static float deterministic_atanhf(float arg);
+
 	// Random
 	static void randomize();
 	static int64_t randi();

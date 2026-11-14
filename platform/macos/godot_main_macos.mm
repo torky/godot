@@ -32,6 +32,7 @@
 #import "os_macos.h"
 
 #include "core/profiling/profiling.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 
 #if defined(ASAN_ENABLED)
@@ -40,6 +41,7 @@
 
 __attribute__((visibility("default"))) int main(int argc, char **argv) {
 	godot_init_profiler();
+	fp_deterministic_init();
 
 #if defined(VULKAN_ENABLED)
 	setenv("MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE", "1", 1); // MoltenVK - enable full component swizzling support.

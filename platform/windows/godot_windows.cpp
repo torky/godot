@@ -31,6 +31,7 @@
 #include "os_windows.h"
 
 #include "core/profiling/profiling.h"
+#include "core/math/fp_deterministic.h"
 #include "main/main.h"
 
 #include <clocale>
@@ -66,6 +67,8 @@ char *wc_to_utf8(const wchar_t *wc) {
 }
 
 int widechar_main(int argc, wchar_t **argv) {
+	fp_deterministic_init();
+
 	godot_init_profiler();
 
 	// Prevent Windows from replacing the window with a "ghost" when the main

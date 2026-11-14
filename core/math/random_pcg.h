@@ -131,7 +131,7 @@ public:
 		if (temp < CMP_EPSILON) {
 			temp += CMP_EPSILON; // To prevent generating of INF value in log function, resulting to return NaN value from this function.
 		}
-		return p_mean + p_deviation * (Math::cos((float)Math::TAU * randf()) * Math::sqrt(-2.0 * Math::log(temp))); // Box-Muller transform.
+		return p_mean + p_deviation * (Math::cos((float)Math::TAU * randf()) * Math::sqrt(-2.0f * Math::log(temp))); // Box-Muller transform.
 	}
 
 	double random(double p_from, double p_to);
