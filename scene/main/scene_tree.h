@@ -332,6 +332,7 @@ public:
 		call_group_flagsp(p_flags, p_group, p_function, sizeof...(p_args) == 0 ? nullptr : (const Variant **)argptrs, sizeof...(p_args));
 	}
 
+	void flush_notifications();
 	void flush_transform_notifications();
 
 	bool is_accessibility_enabled() const;
