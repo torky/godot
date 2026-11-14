@@ -6,6 +6,8 @@
 
 #include <Jolt/Physics/Constraints/ConstraintManager.h>
 #include <Jolt/Physics/Constraints/CalculateSolverSteps.h>
+#include <Jolt/Physics/Constraints/TwoBodyConstraint.h>
+#include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/IslandBuilder.h>
 #include <Jolt/Physics/StateRecorder.h>
 #include <Jolt/Physics/PhysicsLock.h>
@@ -110,6 +112,19 @@ void ConstraintManager::sSortConstraints(Constraint **inActiveConstraints, uint3
 
 		if (lhs->GetConstraintPriority() != rhs->GetConstraintPriority())
 			return lhs->GetConstraintPriority() < rhs->GetConstraintPriority();
+
+		// Bodies' stable keys before the index: the index depends on add/remove history, which differs between systems that reached the same state
+		if (lhs->GetType() == EConstraintType::TwoBodyConstraint && rhs->GetType() == EConstraintType::TwoBodyConstraint)
+		{
+			const TwoBodyConstraint *lhs2 = static_cast<const TwoBodyConstraint *>(lhs);
+			const TwoBodyConstraint *rhs2 = static_cast<const TwoBodyConstraint *>(rhs);
+			if (lhs2->GetBody1() != rhs2->GetBody1())
+				return lhs2->GetBody1()->IsStableLess(*rhs2->GetBody1());
+			if (lhs2->GetBody2() != rhs2->GetBody2())
+				return lhs2->GetBody2()->IsStableLess(*rhs2->GetBody2());
+			if (lhs->GetSubType() != rhs->GetSubType())
+				return lhs->GetSubType() < rhs->GetSubType();
+		}
 
 		return lhs->mConstraintIndex < rhs->mConstraintIndex;
 	});

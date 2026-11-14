@@ -295,6 +295,9 @@ public:
 	virtual void space_step(RID p_space, real_t p_delta) = 0;
 	virtual void space_flush_queries(RID p_space) = 0;
 	virtual void space_flush_pending_objects(RID p_space) = 0;
+	virtual void space_canonicalize(RID p_space) = 0;
+	virtual int64_t space_get_state_hash(RID p_space) const = 0;
+	virtual PackedInt64Array space_get_body_state_hashes(RID p_space) const = 0;
 
 	enum SpaceParameter {
 		SPACE_PARAM_CONTACT_RECYCLE_RADIUS,

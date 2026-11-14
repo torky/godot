@@ -77,6 +77,13 @@ public:
 	explicit JoltShapedObject3D(ObjectType p_object_type);
 	virtual ~JoltShapedObject3D() override;
 
+	void set_scale_exact(const Vector3 &p_scale) {
+		if (scale != p_scale) {
+			scale = p_scale;
+			_shapes_changed();
+		}
+	}
+
 	Transform3D get_transform_unscaled() const;
 	Transform3D get_transform_scaled() const;
 

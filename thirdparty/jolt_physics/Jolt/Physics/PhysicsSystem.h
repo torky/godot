@@ -247,6 +247,35 @@ public:
 	/// - During the ContactListener::OnContactRemoved callback this function can be used to determine if this is the last contact pair between the bodies (function returns false) or if there are other contacts still present (function returns true).
 	bool						WereBodiesInContact(const BodyID &inBody1ID, const BodyID &inBody2ID) const { return mContactManager.WereBodiesInContact(inBody1ID, inBody2ID); }
 
+	/// Zero all warm start impulses (cached contact impulses and constraint lambdas) so the next step solves as if every contact and constraint were new.
+	/// Contact callbacks are unaffected. Not thread safe, call only when PhysicsSystem::Update is not running.
+	void						ResetWarmStart()
+	{
+		mContactManager.ResetWarmStart();
+		for (const Ref<Constraint> &constraint : mConstraintManager.GetConstraints())
+			constraint->ResetWarmStart();
+	}
+
+	/// Forget all cached contacts so the next step treats every contact as new. Not thread safe, call only when PhysicsSystem::Update is not running.
+	void						ResetContactCache()											{ mContactManager.ResetContactCache(); }
+
+	/// Recompute the stable key of every body from its current state (see Body::GetStableKey), so that systems with equal body states but different creation histories order bodies the same.
+	/// Not thread safe, call only when PhysicsSystem::Update is not running.
+	void						ResetStableKeys()
+	{
+		for (Body *body : mBodyManager.GetBodies())
+			if (BodyManager::sIsValidBodyPointer(body))
+				body->ResetStableKey();
+	}
+
+	/// Renumber every body's creation order from its stable key and tie key (see BodyManager::ResetCreationOrder); call after ResetStableKeys.
+	/// Not thread safe, call only when PhysicsSystem::Update is not running.
+	uint						ResetCreationOrder()										{ return mBodyManager.ResetCreationOrder(); }
+
+	/// TEMP diagnostics: see ContactConstraintManager::ForEachCachedContactPoint
+	template <class Visitor>
+	void						ForEachCachedContactPoint(const Visitor &inVisitor)	{ mContactManager.ForEachCachedContactPoint(inVisitor); }
+
 	/// Get the bounding box of all bodies in the physics system.
 	/// Deprecated: Use GetBroadPhaseQuery().GetBounds() instead.
 	AABox						GetBounds() const											{ return mBroadPhase->GetBounds(); }

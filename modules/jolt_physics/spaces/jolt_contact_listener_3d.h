@@ -134,6 +134,14 @@ public:
 	void pre_step();
 	void post_step();
 
+	void clear_area_overlaps() {
+		area_overlaps.clear();
+		area_enters.clear();
+		area_exits.clear();
+	}
+	void add_area_overlap(const JPH::SubShapeIDPair &p_shape_pair) { area_overlaps.insert(p_shape_pair); }
+	void clear_contacts() { manifolds_by_shape_pair.clear(); }
+
 #ifdef DEBUG_ENABLED
 	const PackedVector3Array &get_debug_contacts() const { return debug_contacts; }
 	int get_debug_contact_count() const { return debug_contact_count.load(std::memory_order_acquire); }

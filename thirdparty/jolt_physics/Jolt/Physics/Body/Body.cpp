@@ -12,6 +12,7 @@
 #include <Jolt/Physics/StateRecorder.h>
 #include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Core/StringTools.h>
+#include <Jolt/Core/HashCombine.h>
 #include <Jolt/Core/Profiler.h>
 #ifdef JPH_DEBUG_RENDERER
 	#include <Jolt/Renderer/DebugRenderer.h>
@@ -32,6 +33,53 @@ Body::Body(bool) :
 	mMotionType(EMotionType::Static)
 {
 	sFixedToWorldShape.SetEmbedded();
+}
+
+void Body::ResetStableKey()
+{
+	uint8 kind[3] = { uint8(mBodyType), uint8(mMotionType), uint8(IsSensor()? 1 : 0) };
+	uint64 hash = HashBytes(kind, sizeof(kind));
+
+	Real position[3] = { mPosition.GetX(), mPosition.GetY(), mPosition.GetZ() };
+	hash = HashBytes(position, sizeof(position), hash);
+
+	float rotation[4] = { mRotation.GetX(), mRotation.GetY(), mRotation.GetZ(), mRotation.GetW() };
+	hash = HashBytes(rotation, sizeof(rotation), hash);
+
+	if (mShape != nullptr)
+	{
+		AABox bounds = mShape->GetLocalBounds();
+		float extent[6] = { bounds.mMin.GetX(), bounds.mMin.GetY(), bounds.mMin.GetZ(), bounds.mMax.GetX(), bounds.mMax.GetY(), bounds.mMax.GetZ() };
+		hash = HashBytes(extent, sizeof(extent), hash);
+	}
+
+	mStableKey = uint32(hash ^ (hash >> 32));
+}
+
+uint32 Body::ComputeTieKey() const
+{
+	uint64 hash2 = HashBytes(&mObjectLayer, sizeof(mObjectLayer));
+	Real position[3] = { mPosition.GetX(), mPosition.GetY(), mPosition.GetZ() };
+	hash2 = HashBytes(position, sizeof(position), hash2);
+	float rotation[4] = { mRotation.GetX(), mRotation.GetY(), mRotation.GetZ(), mRotation.GetW() };
+	hash2 = HashBytes(rotation, sizeof(rotation), hash2);
+	float material[2] = { mFriction, mRestitution };
+	hash2 = HashBytes(material, sizeof(material), hash2);
+	if (mMotionProperties != nullptr)
+	{
+		Vec3 linear = mMotionProperties->GetLinearVelocity();
+		Vec3 angular = mMotionProperties->GetAngularVelocity();
+		float motion[7] = { mMotionProperties->GetInverseMassUnchecked(), linear.GetX(), linear.GetY(), linear.GetZ(), angular.GetX(), angular.GetY(), angular.GetZ() };
+		hash2 = HashBytes(motion, sizeof(motion), hash2);
+	}
+	if (mShape != nullptr)
+	{
+		uint8 shape_kind[2] = { uint8(mShape->GetType()), uint8(mShape->GetSubType()) };
+		hash2 = HashBytes(shape_kind, sizeof(shape_kind), hash2);
+		float volume = mShape->GetVolume();
+		hash2 = HashBytes(&volume, sizeof(volume), hash2);
+	}
+	return uint32(hash2 ^ (hash2 >> 32));
 }
 
 void Body::SetMotionType(EMotionType inMotionType)

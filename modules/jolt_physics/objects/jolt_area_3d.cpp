@@ -619,6 +619,35 @@ bool JoltArea3D::shape_exited(const JPH::BodyID &p_body_id, const JPH::SubShapeI
 	return body_shape_exited(p_body_id, p_other_shape_id, p_self_shape_id) || area_shape_exited(p_body_id, p_other_shape_id, p_self_shape_id);
 }
 
+void JoltArea3D::_exit_overlap(Overlap &p_overlap) {
+	for (const KeyValue<ShapeIDPair, ShapeIndexPair> &E : p_overlap.shape_pairs) {
+		if (!p_overlap.pending_added.erase(E.value)) {
+			p_overlap.pending_removed.push_back(E.value);
+		}
+	}
+
+	p_overlap.shape_pairs.clear();
+
+	_events_changed();
+}
+
+void JoltArea3D::exit_all_overlaps() {
+	for (KeyValue<JPH::BodyID, Overlap> &E : bodies_by_id) {
+		if (E.value.shape_pairs.is_empty()) {
+			continue;
+		}
+		_exit_overlap(E.value);
+		_notify_body_exited(E.key);
+	}
+
+	for (KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
+		if (E.value.shape_pairs.is_empty()) {
+			continue;
+		}
+		_exit_overlap(E.value);
+	}
+}
+
 void JoltArea3D::call_queries() {
 	_flush_events(bodies_by_id, body_monitor_callback);
 	_flush_events(areas_by_id, area_monitor_callback);

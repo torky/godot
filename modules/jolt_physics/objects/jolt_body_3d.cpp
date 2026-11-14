@@ -165,6 +165,15 @@ void JoltBody3D::_integrate_forces(float p_step) {
 	jolt_body->AddTorque(to_jolt(constant_torque));
 }
 
+void JoltBody3D::snap_to_kinematic_target() {
+	if (!in_space() || !is_kinematic()) {
+		return;
+	}
+	space->get_body_iface().SetPositionAndRotation(jolt_body->GetID(), to_jolt_r(kinematic_transform.origin), to_jolt(kinematic_transform.basis), JPH::EActivation::DontActivate);
+	jolt_body->SetLinearVelocity(JPH::Vec3::sZero());
+	jolt_body->SetAngularVelocity(JPH::Vec3::sZero());
+}
+
 void JoltBody3D::_move_kinematic(float p_step) {
 	jolt_body->SetLinearVelocity(JPH::Vec3::sZero());
 	jolt_body->SetAngularVelocity(JPH::Vec3::sZero());

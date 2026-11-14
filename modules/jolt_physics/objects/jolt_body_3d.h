@@ -158,6 +158,8 @@ public:
 	JoltBody3D();
 	virtual ~JoltBody3D() override;
 
+	String get_debug_integration_state() const { return vformat("ld=%f ad=%f g=%s areas=%d ci=%d cf=%s ct=%s gs=%f", total_linear_damp, total_angular_damp, total_gravity, (int)areas.size(), custom_integrator ? 1 : 0, constant_force, constant_torque, get_gravity_scale()); }
+
 	void set_transform(Transform3D p_transform);
 
 	Variant get_state(PhysicsServer3D::BodyState p_state) const;
@@ -285,6 +287,12 @@ public:
 	void set_gravity_scale(float p_scale);
 
 	Vector3 get_total_gravity() const { return total_gravity; }
+	void snap_to_kinematic_target();
+	void refresh_gravity() {
+		if (in_space()) {
+			_update_environmental_properties();
+		}
+	}
 
 	float get_linear_damp() const { return linear_damp; }
 	void set_linear_damp(float p_damp);

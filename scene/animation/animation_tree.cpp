@@ -1147,6 +1147,9 @@ void AnimationTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_advance_expression_base_node", "path"), &AnimationTree::set_advance_expression_base_node);
 	ClassDB::bind_method(D_METHOD("get_advance_expression_base_node"), &AnimationTree::get_advance_expression_base_node);
 
+	ClassDB::bind_method(D_METHOD("set_start_pending", "pending"), &AnimationTree::set_start_pending);
+	ClassDB::bind_method(D_METHOD("is_start_pending"), &AnimationTree::is_start_pending);
+
 	ClassDB::bind_method(D_METHOD("set_animation_player", "path"), &AnimationTree::set_animation_player);
 	ClassDB::bind_method(D_METHOD("get_animation_player"), &AnimationTree::get_animation_player);
 

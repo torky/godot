@@ -33,6 +33,7 @@
 #include "../joints/jolt_joint_3d.h"
 #include "../jolt_physics_server_3d.h"
 #include "../jolt_project_settings.h"
+#include "../misc/jolt_math_funcs.h"
 #include "../misc/jolt_stream_wrappers.h"
 #include "../objects/jolt_area_3d.h"
 #include "../objects/jolt_body_3d.h"
@@ -43,12 +44,20 @@
 #include "jolt_physics_direct_space_state_3d.h"
 
 #include "core/io/file_access.h"
+#include "core/os/os.h"
 #include "core/os/time.h"
+#include "scene/3d/node_3d.h"
+#include "scene/main/node.h"
 #include "core/string/print_string.h"
 #include "core/variant/variant_utility.h"
 
+#include <Jolt/Physics/Body/BodyFilter.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CollideShapeVsShapePerLeaf.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
+#include <Jolt/Physics/Collision/Shape/CompoundShape.h>
+#include <Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h>
 #include <Jolt/Physics/PhysicsScene.h>
 
 namespace {
@@ -70,6 +79,11 @@ void JoltSpace3D::_pre_step(float p_step) {
 		JoltShapedObject3D *object = needs_optimization_list.first()->self();
 		needs_optimization_list.remove(needs_optimization_list.first());
 		object->commit_shapes(true);
+	}
+
+	if (dump_keys_next_step > 0) {
+		_dump_stable_keys(vformat("%s.%d.%d.step%d.txt", OS::get_singleton()->get_environment("JOLT_STABLE_KEY_DUMP"), OS::get_singleton()->get_process_id(), dump_canonicalize_count, 3 - dump_keys_next_step));
+		dump_keys_next_step--;
 	}
 
 	contact_listener->pre_step();
@@ -133,6 +147,7 @@ JoltSpace3D::JoltSpace3D(JPH::JobSystem *p_job_system, JPH::TempAllocator *p_tem
 	settings.mPointVelocitySleepThreshold = JoltProjectSettings::sleep_velocity_threshold;
 	settings.mUseBodyPairContactCache = JoltProjectSettings::body_pair_contact_cache_enabled;
 	settings.mAllowSleeping = JoltProjectSettings::sleep_allowed;
+	settings.mUseLargeIslandSplitter = false;
 
 	physics_system->SetPhysicsSettings(settings);
 	physics_system->SetGravity(JPH::Vec3::sZero());
@@ -196,6 +211,10 @@ void JoltSpace3D::step(float p_step) {
 
 	const JPH::EPhysicsUpdateError update_error = physics_system->Update(p_step, 1, temp_allocator, job_system);
 
+	if (dump_keys_next_step == 1) {
+		_dump_stable_keys(vformat("%s.%d.%d.post1.txt", OS::get_singleton()->get_environment("JOLT_STABLE_KEY_DUMP"), OS::get_singleton()->get_process_id(), dump_canonicalize_count));
+	}
+
 	if ((update_error & JPH::EPhysicsUpdateError::ManifoldCacheFull) != JPH::EPhysicsUpdateError::None) {
 		WARN_PRINT_ONCE(vformat("Jolt Physics manifold cache exceeded capacity and contacts were ignored. "
 								"Consider increasing maximum number of contact constraints in project settings. "
@@ -222,18 +241,36 @@ void JoltSpace3D::step(float p_step) {
 	stepping = false;
 }
 
-void JoltSpace3D::call_queries() {
-	while (body_call_queries_list.first()) {
-		JoltBody3D *body = body_call_queries_list.first()->self();
-		body_call_queries_list.remove(body_call_queries_list.first());
-		body->call_queries();
-	}
+template <typename T>
+static void _call_queries_in_stable_order(typename SelfList<T>::List &p_list) {
+	struct StableLess {
+		bool operator()(const T *p_a, const T *p_b) const {
+			const JPH::Body *a = p_a->get_jolt_body();
+			const JPH::Body *b = p_b->get_jolt_body();
+			if (a == nullptr || b == nullptr) {
+				return a != nullptr;
+			}
+			return a->IsStableLess(*b);
+		}
+	};
 
-	while (area_call_queries_list.first()) {
-		JoltArea3D *body = area_call_queries_list.first()->self();
-		area_call_queries_list.remove(area_call_queries_list.first());
-		body->call_queries();
+	LocalVector<T *> batch;
+	while (p_list.first()) {
+		batch.clear();
+		while (p_list.first()) {
+			batch.push_back(p_list.first()->self());
+			p_list.remove(p_list.first());
+		}
+		batch.template sort_custom<StableLess>();
+		for (T *object : batch) {
+			object->call_queries();
+		}
 	}
+}
+
+void JoltSpace3D::call_queries() {
+	_call_queries_in_stable_order<JoltBody3D>(body_call_queries_list);
+	_call_queries_in_stable_order<JoltArea3D>(area_call_queries_list);
 }
 
 double JoltSpace3D::get_param(PhysicsServer3D::SpaceParameter p_param) const {
@@ -440,6 +477,443 @@ void JoltSpace3D::remove_object(const JPH::BodyID &p_jolt_id) {
 	// We'll never actually have zero bodies in any space though, since we always have the default area, so we check if there's one or fewer left instead.
 	if (!JoltPhysicsServer3D::get_singleton()->is_active() && physics_system->GetNumBodies() <= 1) {
 		physics_system->OptimizeBroadPhase();
+	}
+}
+
+void JoltSpace3D::canonicalize() {
+	ERR_FAIL_COND_MSG(stepping, "Space can't be canonicalized while it is stepping.");
+	flush_pending_objects();
+	_canonicalize_poses();
+
+	while (needs_optimization_list.first()) {
+		JoltShapedObject3D *object = needs_optimization_list.first()->self();
+		needs_optimization_list.remove(needs_optimization_list.first());
+		object->commit_shapes(true);
+	}
+
+	// Bodies added above were activated, which queues a state sync that would write their round-tripped Jolt pose back into the node.
+	while (body_call_queries_list.first()) {
+		body_call_queries_list.remove(body_call_queries_list.first());
+	}
+
+	physics_system->ResetStableKeys();
+	const uint32_t creation_order_ties = physics_system->ResetCreationOrder();
+	if (creation_order_ties > 0) {
+		ERR_PRINT(vformat("Jolt canonicalize found %d pair(s) of bodies identical in pose, velocity, shape and material: their order still comes from their creation history, which differs between a joiner and live clients.", creation_order_ties));
+	}
+	physics_system->ResetWarmStart();
+	physics_system->ResetContactCache();
+	contact_listener->clear_contacts();
+
+	_canonicalize_area_overlaps();
+
+	JPH::BodyIDVector body_ids;
+	physics_system->GetBodies(body_ids);
+	const JPH::BodyLockInterface &gravity_lock_iface = get_lock_iface();
+	for (const JPH::BodyID &id : body_ids) {
+		const JPH::Body *body = gravity_lock_iface.TryGetBody(id);
+		if (body == nullptr) {
+			continue;
+		}
+		JoltObject3D *object = reinterpret_cast<JoltObject3D *>(body->GetUserData());
+		if (object == nullptr) {
+			continue;
+		}
+		if (JoltBody3D *jolt_body = object->as_body()) {
+			jolt_body->refresh_gravity();
+			JPH::Body *writable = jolt_body->get_jolt_body();
+			if (writable != nullptr && writable->IsDynamic()) {
+				writable->ResetForce();
+				writable->ResetTorque();
+			}
+		}
+	}
+
+	_canonicalize_sleep();
+
+	const String dump_path = OS::get_singleton()->get_environment("JOLT_STABLE_KEY_DUMP");
+	if (!dump_path.is_empty()) {
+		dump_canonicalize_count++;
+		_dump_stable_keys(vformat("%s.%d.%d.canon.txt", dump_path, OS::get_singleton()->get_process_id(), dump_canonicalize_count));
+		dump_keys_next_step = 2;
+	}
+}
+
+void JoltSpace3D::_canonicalize_sleep() {
+	JPH::BodyIDVector ids;
+	physics_system->GetBodies(ids);
+	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
+	LocalVector<JPH::Body *> movable;
+	for (const JPH::BodyID &id : ids) {
+		JPH::BodyLockWrite lock(lock_iface, id);
+		if (!lock.Succeeded()) {
+			continue;
+		}
+		JPH::Body &body = lock.GetBody();
+		if (!body.IsStatic() && body.IsInBroadPhase()) {
+			movable.push_back(&body);
+		}
+	}
+	struct StableLess {
+		bool operator()(const JPH::Body *p_a, const JPH::Body *p_b) const {
+			return p_a->IsStableLess(*p_b);
+		}
+	};
+	movable.sort_custom<StableLess>();
+	JPH::BodyInterface &body_iface = get_body_iface();
+	for (JPH::Body *body : movable) {
+		if (!body->IsActive()) {
+			body_iface.ActivateBody(body->GetID());
+		}
+		body->ResetSleepTimer();
+	}
+}
+
+void JoltSpace3D::_canonicalize_poses() {
+	JPH::BodyIDVector ids;
+	physics_system->GetBodies(ids);
+	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
+	for (const JPH::BodyID &id : ids) {
+		const JPH::Body *body = lock_iface.TryGetBody(id);
+		if (body == nullptr) {
+			continue;
+		}
+		JoltObject3D *object = reinterpret_cast<JoltObject3D *>(body->GetUserData());
+		if (object == nullptr) {
+			continue;
+		}
+		JoltShapedObject3D *shaped = object->as_shaped();
+		if (shaped == nullptr) {
+			continue;
+		}
+		const Node3D *node = Object::cast_to<Node3D>(object->get_instance());
+		if (node == nullptr || !node->is_inside_tree()) {
+			JoltBody3D *jolt_body = object->as_body();
+			if (jolt_body != nullptr && jolt_body->is_kinematic()) {
+				jolt_body->snap_to_kinematic_target();
+			}
+			continue;
+		}
+		const Transform3D transform = node->get_global_transform();
+		Transform3D unscaled = transform;
+		Vector3 exact_scale;
+		JoltMath::decompose(unscaled, exact_scale);
+		shaped->set_scale_exact(exact_scale);
+		JoltArea3D *area = shaped->as_area();
+		JoltBody3D *jolt_body = shaped->as_body();
+		if (jolt_body != nullptr && jolt_body->is_kinematic()) {
+			jolt_body->snap_to_kinematic_target();
+		} else if (area != nullptr) {
+			area->set_transform(transform);
+		} else if (jolt_body != nullptr) {
+			jolt_body->set_transform(transform);
+		}
+	}
+}
+
+void JoltSpace3D::_canonicalize_area_overlaps() {
+	struct AreaEntry {
+		uint32_t key;
+		JPH::BodyID id;
+		JoltArea3D *area;
+	};
+	struct Hit {
+		uint32_t key;
+		uint32_t other_sub;
+		uint32_t self_sub;
+		JPH::BodyID other_id;
+		JPH::SubShapeID other_sub_id;
+		JPH::SubShapeID self_sub_id;
+	};
+	struct AreaEntryLess {
+		bool operator()(const AreaEntry &p_a, const AreaEntry &p_b) const { return p_a.key != p_b.key ? p_a.key < p_b.key : p_a.id < p_b.id; }
+	};
+	struct HitLess {
+		bool operator()(const Hit &p_a, const Hit &p_b) const {
+			if (p_a.key != p_b.key) {
+				return p_a.key < p_b.key;
+			}
+			if (p_a.other_sub != p_b.other_sub) {
+				return p_a.other_sub < p_b.other_sub;
+			}
+			return p_a.self_sub < p_b.self_sub;
+		}
+	};
+
+	JPH::BodyIDVector ids;
+	physics_system->GetBodies(ids);
+	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
+
+	LocalVector<AreaEntry> areas;
+	for (const JPH::BodyID &id : ids) {
+		const JPH::Body *body = lock_iface.TryGetBody(id);
+		if (body == nullptr) {
+			continue;
+		}
+		JoltObject3D *object = reinterpret_cast<JoltObject3D *>(body->GetUserData());
+		if (object == nullptr) {
+			continue;
+		}
+		if (JoltArea3D *area = object->as_area()) {
+			areas.push_back({ body->GetStableKey(), id, area });
+		}
+	}
+	areas.sort_custom<AreaEntryLess>();
+
+	for (const AreaEntry &entry : areas) {
+		entry.area->exit_all_overlaps();
+		entry.area->call_queries();
+	}
+	contact_listener->clear_area_overlaps();
+
+	JPH::CollideShapeSettings settings;
+	settings.mMaxSeparationDistance = 0.0f;
+	settings.mActiveEdgeMode = physics_system->GetPhysicsSettings().mCheckActiveEdges ? JPH::EActiveEdgeMode::CollideOnlyWithActive : JPH::EActiveEdgeMode::CollideWithAll;
+
+	LocalVector<Hit> hits;
+	for (const AreaEntry &entry : areas) {
+		if (!entry.area->is_monitoring()) {
+			continue;
+		}
+		const JPH::Body *body = lock_iface.TryGetBody(entry.id);
+		if (body == nullptr) {
+			continue;
+		}
+		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> collector;
+		const JPH::IgnoreSingleBodyFilter body_filter(entry.id);
+		get_narrow_phase_query().CollideShape(body->GetShape(), JPH::Vec3::sOne(), body->GetCenterOfMassTransform(), settings, JPH::RVec3::sZero(), collector, {}, {}, body_filter);
+
+		hits.clear();
+		for (const JPH::CollideShapeResult &result : collector.mHits) {
+			const JPH::Body *other = lock_iface.TryGetBody(result.mBodyID2);
+			if (other == nullptr) {
+				continue;
+			}
+			hits.push_back({ other->GetStableKey(), result.mSubShapeID2.GetValue(), result.mSubShapeID1.GetValue(), result.mBodyID2, result.mSubShapeID2, result.mSubShapeID1 });
+		}
+		hits.sort_custom<HitLess>();
+
+		for (uint32_t i = 0; i < hits.size(); i++) {
+			const Hit &hit = hits[i];
+			if (i > 0 && hits[i - 1].other_id == hit.other_id && hits[i - 1].other_sub == hit.other_sub && hits[i - 1].self_sub == hit.self_sub) {
+				continue;
+			}
+			JoltObject3D *other_object = try_get_object(hit.other_id);
+			if (other_object == nullptr) {
+				continue;
+			}
+			const JPH::SubShapeIDPair shape_pair(entry.id, hit.self_sub_id, hit.other_id, hit.other_sub_id);
+			if (const JoltArea3D *other_area = other_object->as_area()) {
+				if (entry.area->can_monitor(*other_area)) {
+					contact_listener->add_area_overlap(shape_pair);
+					entry.area->area_shape_entered(hit.other_id, hit.other_sub_id, hit.self_sub_id);
+				}
+			} else if (const JoltBody3D *other_body = other_object->as_body()) {
+				if (entry.area->can_monitor(*other_body)) {
+					contact_listener->add_area_overlap(shape_pair);
+					entry.area->body_shape_entered(hit.other_id, hit.other_sub_id, hit.self_sub_id);
+				}
+			}
+		}
+		entry.area->call_queries();
+	}
+}
+
+static uint32_t _hash_float_bits(float p_value, uint32_t p_seed) {
+	uint32_t bits;
+	memcpy(&bits, &p_value, sizeof(bits));
+	return hash_murmur3_one_32(bits, p_seed);
+}
+
+static uint32_t _hash_vec3(const JPH::Vec3 &p_value, uint32_t p_seed) {
+	p_seed = _hash_float_bits(p_value.GetX(), p_seed);
+	p_seed = _hash_float_bits(p_value.GetY(), p_seed);
+	return _hash_float_bits(p_value.GetZ(), p_seed);
+}
+
+static uint32_t _body_state_hash(const JPH::Body &p_body) {
+	uint32_t hash = HASH_MURMUR3_SEED;
+	hash = hash_murmur3_one_32(uint32_t(p_body.GetMotionType()), hash);
+	hash = hash_murmur3_one_32(p_body.IsSensor() ? 1u : 0u, hash);
+	hash = hash_murmur3_one_32(p_body.IsInBroadPhase() ? 1u : 0u, hash);
+	const JoltObject3D *object = reinterpret_cast<const JoltObject3D *>(p_body.GetUserData());
+	if (object != nullptr) {
+		hash = hash_murmur3_one_32(object->get_collision_layer(), hash);
+		hash = hash_murmur3_one_32(object->get_collision_mask(), hash);
+	}
+	const JPH::RVec3 position = p_body.GetPosition();
+	hash = _hash_float_bits(float(position.GetX()), hash);
+	hash = _hash_float_bits(float(position.GetY()), hash);
+	hash = _hash_float_bits(float(position.GetZ()), hash);
+	const JPH::Quat rotation = p_body.GetRotation();
+	hash = _hash_float_bits(rotation.GetX(), hash);
+	hash = _hash_float_bits(rotation.GetY(), hash);
+	hash = _hash_float_bits(rotation.GetZ(), hash);
+	hash = _hash_float_bits(rotation.GetW(), hash);
+	if (!p_body.IsStatic()) {
+		hash = hash_murmur3_one_32(p_body.IsActive() ? 1u : 0u, hash);
+		hash = _hash_vec3(p_body.GetLinearVelocity(), hash);
+		hash = _hash_vec3(p_body.GetAngularVelocity(), hash);
+	}
+	if (p_body.IsDynamic()) {
+		const JPH::MotionProperties *motion = p_body.GetMotionPropertiesUnchecked();
+		hash = _hash_float_bits(motion->GetGravityFactor(), hash);
+		hash = _hash_float_bits(motion->GetInverseMassUnchecked(), hash);
+		hash = _hash_float_bits(motion->GetLinearDamping(), hash);
+		hash = _hash_float_bits(motion->GetAngularDamping(), hash);
+		hash = _hash_vec3(motion->GetAccumulatedForce(), hash);
+		hash = _hash_vec3(motion->GetAccumulatedTorque(), hash);
+	}
+	return hash_fmix32(hash);
+}
+
+int64_t JoltSpace3D::get_state_hash(PackedInt64Array *r_bodies) const {
+	JPH::BodyIDVector ids;
+	physics_system->GetBodies(ids);
+	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
+	LocalVector<uint32_t> hashes;
+	hashes.reserve(ids.size());
+	for (const JPH::BodyID &id : ids) {
+		const JPH::Body *body = lock_iface.TryGetBody(id);
+		if (body == nullptr) {
+			continue;
+		}
+		const uint32_t body_hash = _body_state_hash(*body);
+		hashes.push_back(body_hash);
+		if (r_bodies != nullptr) {
+			const JoltObject3D *object = reinterpret_cast<const JoltObject3D *>(body->GetUserData());
+			r_bodies->push_back(object != nullptr ? int64_t(uint64_t(object->get_instance_id())) : 0);
+			r_bodies->push_back(int64_t(body_hash));
+		}
+	}
+	hashes.sort();
+	uint32_t total = HASH_MURMUR3_SEED;
+	for (const uint32_t body_hash : hashes) {
+		total = hash_murmur3_one_32(body_hash, total);
+	}
+	return (int64_t(hashes.size()) << 32) | int64_t(hash_fmix32(total));
+}
+
+static String _float_bits(float p_value) {
+	uint32_t bits;
+	memcpy(&bits, &p_value, sizeof(bits));
+	return String::num_uint64(bits, 16).lpad(8, "0");
+}
+
+void JoltSpace3D::_dump_stable_keys(const String &p_path) const {
+	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::WRITE);
+	ERR_FAIL_COND(file.is_null());
+
+	JPH::BodyIDVector ids;
+	physics_system->GetBodies(ids);
+	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
+
+	Vector<String> lines;
+	HashMap<uint32_t, String> labels;
+	for (const JPH::BodyID &id : ids) {
+		const JPH::Body *body = lock_iface.TryGetBody(id);
+		if (body == nullptr) {
+			continue;
+		}
+
+		String name = "?";
+		const JoltObject3D *object = reinterpret_cast<const JoltObject3D *>(body->GetUserData());
+		if (object != nullptr) {
+			if (Node *node = Object::cast_to<Node>(object->get_instance())) {
+				name = String(node->get_path());
+			}
+		}
+
+		const JPH::RVec3 p = body->GetCenterOfMassPosition();
+		const JPH::Quat q = body->GetRotation();
+		const JPH::AABox b = body->GetShape()->GetLocalBounds();
+		String line = name + "\tkey=" + String::num_uint64(body->GetStableKey(), 16).lpad(8, "0");
+		line += "\tm=" + itos(int(body->GetMotionType())) + "\ts=" + itos(body->IsSensor() ? 1 : 0) + "\tco=" + String::num_uint64(body->GetCreationOrder());
+		line += "\tp=" + _float_bits(float(p.GetX())) + "," + _float_bits(float(p.GetY())) + "," + _float_bits(float(p.GetZ()));
+		line += "\tq=" + _float_bits(q.GetX()) + "," + _float_bits(q.GetY()) + "," + _float_bits(q.GetZ()) + "," + _float_bits(q.GetW());
+		if (object != nullptr && object->as_body() != nullptr && body->IsDynamic()) {
+			line += "\t" + object->as_body()->get_debug_integration_state();
+		}
+		if (body->GetMotionPropertiesUnchecked() != nullptr) {
+			const JPH::Vec3 v = body->GetLinearVelocity();
+			const JPH::Vec3 w = body->GetAngularVelocity();
+			line += "\tv=" + _float_bits(v.GetX()) + "," + _float_bits(v.GetY()) + "," + _float_bits(v.GetZ());
+			line += "\tw=" + _float_bits(w.GetX()) + "," + _float_bits(w.GetY()) + "," + _float_bits(w.GetZ());
+		}
+		line += "\tb=" + _float_bits(b.mMin.GetX()) + "," + _float_bits(b.mMin.GetY()) + "," + _float_bits(b.mMin.GetZ()) + "," + _float_bits(b.mMax.GetX()) + "," + _float_bits(b.mMax.GetY()) + "," + _float_bits(b.mMax.GetZ());
+		const JPH::Vec3 com = body->GetShape()->GetCenterOfMass();
+		line += "\tst=" + itos(int(body->GetShape()->GetSubType())) + "\tcom=" + _float_bits(com.GetX()) + "," + _float_bits(com.GetY()) + "," + _float_bits(com.GetZ());
+		line += "\tfr=" + _float_bits(body->GetFriction()) + "\tre=" + _float_bits(body->GetRestitution());
+		const JPH::RVec3 origin = body->GetPosition();
+		line += "\top=" + _float_bits(float(origin.GetX())) + "," + _float_bits(float(origin.GetY())) + "," + _float_bits(float(origin.GetZ()));
+		if (object != nullptr && object->as_shaped() != nullptr) {
+			const Vector3 shaped_scale = object->as_shaped()->get_scale();
+			line += "\tsc=" + _float_bits(shaped_scale.x) + "," + _float_bits(shaped_scale.y) + "," + _float_bits(shaped_scale.z);
+		}
+		if (body->IsDynamic()) {
+			const JPH::MotionProperties *mp = body->GetMotionPropertiesUnchecked();
+			const JPH::Vec3 ii = mp->GetInverseInertiaDiagonal();
+			const JPH::Quat ir = mp->GetInertiaRotation();
+			line += "\tim=" + _float_bits(mp->GetInverseMassUnchecked());
+			line += "\tii=" + _float_bits(ii.GetX()) + "," + _float_bits(ii.GetY()) + "," + _float_bits(ii.GetZ());
+			line += "\tir=" + _float_bits(ir.GetX()) + "," + _float_bits(ir.GetY()) + "," + _float_bits(ir.GetZ()) + "," + _float_bits(ir.GetW());
+			line += "\tdof=" + itos(int(mp->GetAllowedDOFs())) + "\tmq=" + itos(int(mp->GetMotionQuality()));
+			line += "\tjd=" + _float_bits(mp->GetLinearDamping()) + "," + _float_bits(mp->GetAngularDamping()) + "\tgf=" + _float_bits(mp->GetGravityFactor()) + "\tmlv=" + _float_bits(mp->GetMaxLinearVelocity());
+			const JPH::Vec3 af = mp->GetAccumulatedForce();
+			const JPH::Vec3 at = mp->GetAccumulatedTorque();
+			line += "\taf=" + _float_bits(af.GetX()) + "," + _float_bits(af.GetY()) + "," + _float_bits(af.GetZ());
+			line += "\tat=" + _float_bits(at.GetX()) + "," + _float_bits(at.GetY()) + "," + _float_bits(at.GetZ());
+			line += "\tsteps=" + itos(mp->GetNumVelocityStepsOverride()) + "," + itos(mp->GetNumPositionStepsOverride());
+		}
+		lines.push_back(line);
+		labels[id.GetIndexAndSequenceNumber()] = String::num_uint64(body->GetStableKey(), 16).lpad(8, "0") + "|" + name;
+
+		const JPH::Shape *inner = body->GetShape();
+		String wrappers;
+		while (inner->GetType() == JPH::EShapeType::Decorated) {
+			wrappers += itos(int(inner->GetSubType())) + ">";
+			if (inner->GetSubType() == JPH::EShapeSubType::OffsetCenterOfMass) {
+				const JPH::Vec3 off = static_cast<const JPH::OffsetCenterOfMassShape *>(inner)->GetOffset();
+				wrappers += "off(" + _float_bits(off.GetX()) + "," + _float_bits(off.GetY()) + "," + _float_bits(off.GetZ()) + ")>";
+			}
+			inner = static_cast<const JPH::DecoratedShape *>(inner)->GetInnerShape();
+		}
+		if (inner->GetType() == JPH::EShapeType::Compound) {
+			const JPH::CompoundShape *compound = static_cast<const JPH::CompoundShape *>(inner);
+			const JPH::Vec3 ccom = compound->GetCenterOfMass();
+			lines.push_back("~compound\t" + String::num_uint64(body->GetStableKey(), 16).lpad(8, "0") + "\t" + wrappers + itos(int(inner->GetSubType())) + "\tn=" + itos(compound->GetNumSubShapes()) + "\tcom=" + _float_bits(ccom.GetX()) + "," + _float_bits(ccom.GetY()) + "," + _float_bits(ccom.GetZ()) + "\t" + name);
+			for (JPH::uint i = 0; i < compound->GetNumSubShapes(); ++i) {
+				const JPH::CompoundShape::SubShape &sub = compound->GetSubShape(i);
+				const JPH::Vec3 sp = sub.GetPositionCOM();
+				const JPH::Quat sr = sub.GetRotation();
+				const JPH::AABox sb = sub.mShape->GetLocalBounds();
+				String sub_line = "~sub\t" + String::num_uint64(body->GetStableKey(), 16).lpad(8, "0") + "\t" + itos(i) + "\tud=" + itos(sub.mUserData) + "\tst=" + itos(int(sub.mShape->GetSubType()));
+				sub_line += "\tp=" + _float_bits(sp.GetX()) + "," + _float_bits(sp.GetY()) + "," + _float_bits(sp.GetZ());
+				sub_line += "\tq=" + _float_bits(sr.GetX()) + "," + _float_bits(sr.GetY()) + "," + _float_bits(sr.GetZ()) + "," + _float_bits(sr.GetW());
+				sub_line += "\tb=" + _float_bits(sb.mMin.GetX()) + "," + _float_bits(sb.mMin.GetY()) + "," + _float_bits(sb.mMin.GetZ()) + "," + _float_bits(sb.mMax.GetX()) + "," + _float_bits(sb.mMax.GetY()) + "," + _float_bits(sb.mMax.GetZ());
+				lines.push_back(sub_line);
+			}
+		}
+	}
+
+	physics_system->ForEachCachedContactPoint([&](const JPH::SubShapeIDPair &p_key, const JPH::Float3 &p_normal, JPH::uint p_index, const JPH::Float3 &p_position1, const JPH::Float3 &p_position2, float p_lambda, float p_friction1, float p_friction2) {
+		const String *label1 = labels.getptr(p_key.GetBody1ID().GetIndexAndSequenceNumber());
+		const String *label2 = labels.getptr(p_key.GetBody2ID().GetIndexAndSequenceNumber());
+		const String l1 = label1 != nullptr ? *label1 : String("?|?");
+		const String l2 = label2 != nullptr ? *label2 : String("?|?");
+		String line = "~contact\t" + l1.get_slicec('|', 0) + "\t" + l2.get_slicec('|', 0);
+		line += "\tsub=" + String::num_uint64(p_key.GetSubShapeID1().GetValue(), 16) + "," + String::num_uint64(p_key.GetSubShapeID2().GetValue(), 16) + "\ti=" + itos(p_index);
+		line += "\tn=" + _float_bits(p_normal.x) + "," + _float_bits(p_normal.y) + "," + _float_bits(p_normal.z);
+		line += "\tp1=" + _float_bits(p_position1.x) + "," + _float_bits(p_position1.y) + "," + _float_bits(p_position1.z);
+		line += "\tp2=" + _float_bits(p_position2.x) + "," + _float_bits(p_position2.y) + "," + _float_bits(p_position2.z);
+		line += "\tl=" + _float_bits(p_lambda) + "," + _float_bits(p_friction1) + "," + _float_bits(p_friction2);
+		line += "\t" + l1.get_slicec('|', 1) + "\t" + l2.get_slicec('|', 1);
+		lines.push_back(line);
+	});
+
+	lines.sort();
+	for (const String &line : lines) {
+		file->store_line(line);
 	}
 }
 

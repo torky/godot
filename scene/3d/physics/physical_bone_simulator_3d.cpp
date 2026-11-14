@@ -373,6 +373,7 @@ void PhysicalBoneSimulator3D::_process_modification(double p_delta) {
 		return;
 	}
 	ERR_FAIL_COND(skeleton->get_bone_count() != (int)bones.size());
+	const Transform3D skeleton_inverse = skeleton->get_global_transform().affine_inverse();
 	for (int i = 0; i < skeleton->get_bone_count(); i++) {
 		if (!bones[i].physical_bone) {
 			continue;
@@ -381,6 +382,8 @@ void PhysicalBoneSimulator3D::_process_modification(double p_delta) {
 			_bone_pose_updated(skeleton, i);
 			bones[i].physical_bone->reset_to_rest_position();
 		} else if (simulating) {
+			PhysicalBone3D *physical_bone = bones[i].physical_bone;
+			bones[i].global_pose = skeleton_inverse * (physical_bone->get_global_transform() * physical_bone->get_body_offset().affine_inverse());
 			skeleton->set_bone_global_pose(i, bones[i].global_pose);
 		}
 	}

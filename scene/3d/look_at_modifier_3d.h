@@ -92,6 +92,7 @@ private:
 	Quaternion from_q;
 	Quaternion prev_q;
 
+	static constexpr int SIM_STATE_SIZE = 16;
 	float remaining = 0;
 	float time_step = 1.0;
 
@@ -185,6 +186,8 @@ public:
 	float get_secondary_negative_damp_threshold() const;
 
 	float get_interpolation_remaining() const;
+	PackedFloat32Array get_sim_state() const;
+	void set_sim_state(const PackedFloat32Array &p_state);
 	bool is_interpolating() const;
 	bool is_target_within_limitation() const;
 

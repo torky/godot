@@ -140,6 +140,41 @@ uint BodyManager::GetNumBodies() const
 	return mNumBodies;
 }
 
+uint BodyManager::ResetCreationOrder()
+{
+	struct Entry
+	{
+		uint32 mStableKey;
+		uint32 mTieKey;
+		uint64 mCreationOrder;
+		Body *mBody;
+	};
+
+	Array<Entry> entries;
+	entries.reserve(mNumBodies);
+	for (Body *body : mBodies)
+		if (sIsValidBodyPointer(body))
+			entries.push_back({ body->GetStableKey(), body->ComputeTieKey(), body->mCreationOrder, body });
+
+	QuickSort(entries.begin(), entries.end(), [](const Entry &inLHS, const Entry &inRHS) {
+		if (inLHS.mStableKey != inRHS.mStableKey)
+			return inLHS.mStableKey < inRHS.mStableKey;
+		if (inLHS.mTieKey != inRHS.mTieKey)
+			return inLHS.mTieKey < inRHS.mTieKey;
+		return inLHS.mCreationOrder < inRHS.mCreationOrder;
+	});
+
+	uint ties = 0;
+	for (size_t i = 0; i < entries.size(); ++i)
+	{
+		if (i > 0 && entries[i].mStableKey == entries[i - 1].mStableKey && entries[i].mTieKey == entries[i - 1].mTieKey)
+			++ties;
+		entries[i].mBody->mCreationOrder = i;
+	}
+	mNextCreationOrder = entries.size();
+	return ties;
+}
+
 BodyManager::BodyStats BodyManager::GetBodyStats() const
 {
 	UniqueLock lock(mBodiesMutex JPH_IF_ENABLE_ASSERTS(, this, EPhysicsLockTypes::BodiesList));
@@ -238,6 +273,7 @@ Body *BodyManager::AllocateBody(const BodyCreationSettings &inBodyCreationSettin
 
 	// Position body
 	body->SetPositionAndRotationInternal(inBodyCreationSettings.mPosition, inBodyCreationSettings.mRotation);
+	body->ResetStableKey();
 
 	return body;
 }
@@ -275,6 +311,7 @@ Body *BodyManager::AllocateSoftBody(const SoftBodyCreationSettings &inSoftBodyCr
 	mp->Initialize(inSoftBodyCreationSettings);
 
 	body->SetPositionAndRotationInternal(inSoftBodyCreationSettings.mPosition, inSoftBodyCreationSettings.mMakeRotationIdentity? Quat::sIdentity() : inSoftBodyCreationSettings.mRotation);
+	body->ResetStableKey();
 
 	return body;
 }
@@ -323,6 +360,7 @@ bool BodyManager::AddBody(Body *ioBody)
 
 		// Update cached number of bodies
 		mNumBodies++;
+		ioBody->mCreationOrder = mNextCreationOrder++;
 	}
 
 	// Get next sequence number and assign the ID
@@ -394,6 +432,7 @@ bool BodyManager::AddBodyWithCustomID(Body *ioBody, const BodyID &inBodyID)
 
 		// Update cached number of bodies
 		mNumBodies++;
+		ioBody->mCreationOrder = mNextCreationOrder++;
 	}
 
 	// Assign the ID

@@ -136,6 +136,7 @@ private:
 
 	void _add_shape_pair(Overlap &p_overlap, const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
 	bool _remove_shape_pair(Overlap &p_overlap, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
+	void _exit_overlap(Overlap &p_overlap);
 
 	void _flush_events(OverlapsById &p_objects, const Callable &p_callback);
 
@@ -241,6 +242,7 @@ public:
 	bool area_shape_exited(const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
 
 	bool shape_exited(const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
+	void exit_all_overlaps();
 
 	void call_queries();
 

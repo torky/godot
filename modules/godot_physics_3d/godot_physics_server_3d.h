@@ -108,6 +108,9 @@ public:
 	virtual void space_step(RID p_space, real_t p_delta) override;
 	virtual void space_flush_queries(RID p_space) override;
 	virtual void space_flush_pending_objects(RID p_space) override {}
+	virtual void space_canonicalize(RID p_space) override {}
+	virtual int64_t space_get_state_hash(RID p_space) const override { return 0; }
+	virtual PackedInt64Array space_get_body_state_hashes(RID p_space) const override { return PackedInt64Array(); }
 
 	virtual void space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) override;
 	virtual real_t space_get_param(RID p_space, SpaceParameter p_param) const override;

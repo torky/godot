@@ -116,6 +116,9 @@ public:
 	FUNC2(space_step, RID, real_t);
 	FUNC1(space_flush_queries, RID);
 	FUNC1(space_flush_pending_objects, RID);
+	FUNC1(space_canonicalize, RID);
+	FUNC1RC(int64_t, space_get_state_hash, RID);
+	FUNC1RC(PackedInt64Array, space_get_body_state_hashes, RID);
 
 	FUNC3(space_set_param, RID, SpaceParameter, real_t);
 	FUNC2RC(real_t, space_get_param, RID, SpaceParameter);
