@@ -218,8 +218,9 @@ void JoltPhysicsServer3D::space_step(RID p_space, real_t p_delta) {
 	JoltSpace3D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL(space);
 	ERR_FAIL_COND(space->is_stepping());
-
+	job_system->pre_step();
 	space->step(p_delta);
+	job_system->post_step();
 }
 
 void JoltPhysicsServer3D::space_flush_queries(RID p_space) {
@@ -244,6 +245,13 @@ real_t JoltPhysicsServer3D::space_get_param(RID p_space, SpaceParameter p_param)
 	ERR_FAIL_NULL_V(space, 0.0);
 
 	return (real_t)space->get_param(p_param);
+}
+
+real_t JoltPhysicsServer3D::space_get_time(RID p_space) const {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL_V(space, 0.0);
+
+	return (real_t)space->get_time();
 }
 
 PhysicsDirectSpaceState3D *JoltPhysicsServer3D::space_get_direct_state(RID p_space) {
