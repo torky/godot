@@ -35,32 +35,17 @@
 #include <Jolt/Jolt.h>
 
 #include <Jolt/Core/STLLocalAllocator.h>
+#include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Collision/InternalEdgeRemovingCollector.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <type_traits>
 
-template <typename T, typename = void>
-struct has_mBodyID : std::false_type {};
-
-template <typename T>
-struct has_mBodyID<T, std::void_t<decltype(std::declval<T>().mBodyID)>> : std::true_type {};
-
-template <typename T, typename = void>
-struct has_mBodyID2 : std::false_type {};
-
-template <typename T>
-struct has_mBodyID2<T, std::void_t<decltype(std::declval<T>().mBodyID2)>> : std::true_type {};
-
-template <typename Hit>
-inline uint64_t GetHitBodySortKey(const Hit &hit) {
-	if constexpr (has_mBodyID<Hit>::value) {
-		return hit.mBodyID.GetIndexAndSequenceNumber();
-	} else if constexpr (has_mBodyID2<Hit>::value) {
-		return hit.mBodyID2.GetIndexAndSequenceNumber();
-	} else {
-		return 0;
-	}
+inline float jolt_query_tie_inclusive_fraction(float p_fraction, float p_current_early_out) {
+	return std::min(std::nextafter(p_fraction, std::numeric_limits<float>::infinity()), p_current_early_out);
 }
 
 template <typename TBase, int TDefaultCapacity>
@@ -187,6 +172,8 @@ public:
 
 private:
 	Hit hit;
+	uint64_t hit_body_order = 0;
+	uint64_t current_body_order = 0;
 	bool valid = false;
 	int total_hits_considered = 0;
 
@@ -205,6 +192,13 @@ public:
 		TBase::Reset();
 		valid = false;
 		total_hits_considered = 0;
+		hit_body_order = 0;
+		current_body_order = 0;
+	}
+
+	virtual void OnBody(const JPH::Body &p_body) override {
+		TBase::OnBody(p_body);
+		current_body_order = p_body.GetCreationOrder();
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
@@ -212,18 +206,16 @@ public:
 		const float early_out = p_hit.GetEarlyOutFraction();
 		const float current_fraction = hit.GetEarlyOutFraction();
 
-		if (!valid) {
-			TBase::UpdateEarlyOutFraction(early_out);
-			hit = p_hit;
-			valid = true;
-		} else if (early_out == current_fraction) {
-			if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(hit)) {
-				hit = p_hit;
-			}
-		} else if (early_out < current_fraction) {
-			TBase::UpdateEarlyOutFraction(early_out);
-			hit = p_hit;
+		const bool closer = !valid || early_out < current_fraction;
+		const bool tie_won = valid && early_out == current_fraction && current_body_order < hit_body_order;
+		if (!closer && !tie_won) {
+			return;
 		}
+
+		hit = p_hit;
+		hit_body_order = current_body_order;
+		valid = true;
+		TBase::UpdateEarlyOutFraction(jolt_query_tie_inclusive_fraction(early_out, TBase::GetEarlyOutFraction()));
 	}
 };
 
@@ -235,12 +227,15 @@ public:
 
 private:
 	HitArray hits;
+	JPH::Array<uint64_t, JPH::STLLocalAllocator<uint64_t, TDefaultCapacity + 1>> hit_body_orders;
+	uint64_t current_body_order = 0;
 	int max_hits = 0;
 
 public:
 	explicit JoltQueryCollectorClosestMulti(int p_max_hits = TDefaultCapacity) :
 			max_hits(p_max_hits) {
 		hits.reserve(TDefaultCapacity + 1);
+		hit_body_orders.reserve(TDefaultCapacity + 1);
 	}
 
 	bool had_hit() const {
@@ -262,15 +257,22 @@ public:
 	virtual void Reset() override {
 		TBase::Reset();
 		hits.clear();
+		hit_body_orders.clear();
+		current_body_order = 0;
+	}
+
+	virtual void OnBody(const JPH::Body &p_body) override {
+		TBase::OnBody(p_body);
+		current_body_order = p_body.GetCreationOrder();
 	}
 
 	virtual void AddHit(const Hit &p_hit) override {
 		const float new_fraction = p_hit.GetEarlyOutFraction();
-		typename HitArray::const_iterator E = hits.cbegin();
-		for (; E != hits.cend(); ++E) {
-			const float existing_fraction = E->GetEarlyOutFraction();
+		int index = 0;
+		for (; index < (int)hits.size(); ++index) {
+			const float existing_fraction = hits[index].GetEarlyOutFraction();
 			if (new_fraction == existing_fraction) {
-				if (GetHitBodySortKey(p_hit) < GetHitBodySortKey(*E)) {
+				if (current_body_order < hit_body_orders[index]) {
 					break;
 				}
 			} else if (new_fraction < existing_fraction) {
@@ -278,10 +280,12 @@ public:
 			}
 		}
 
-		hits.insert(E, p_hit);
+		hits.insert(hits.begin() + index, p_hit);
+		hit_body_orders.insert(hit_body_orders.begin() + index, current_body_order);
 
 		if ((int)hits.size() > max_hits) {
 			hits.resize(max_hits);
+			hit_body_orders.resize(max_hits);
 		}
 	}
 };
