@@ -58,9 +58,8 @@ void Body::ResetStableKey()
 
 uint32 Body::ComputeTieKey() const
 {
-	uint64 hash2 = HashBytes(&mObjectLayer, sizeof(mObjectLayer));
 	Real position[3] = { mPosition.GetX(), mPosition.GetY(), mPosition.GetZ() };
-	hash2 = HashBytes(position, sizeof(position), hash2);
+	uint64 hash2 = HashBytes(position, sizeof(position));
 	float rotation[4] = { mRotation.GetX(), mRotation.GetY(), mRotation.GetZ(), mRotation.GetW() };
 	hash2 = HashBytes(rotation, sizeof(rotation), hash2);
 	float material[2] = { mFriction, mRestitution };

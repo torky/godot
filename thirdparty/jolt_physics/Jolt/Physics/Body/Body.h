@@ -335,7 +335,7 @@ public:
 		return mCreationOrder < inRHS.mCreationOrder;
 	}
 
-	/// Hash of the current pose, velocity, mass, material, layer and shape, used when two stable keys tie
+	/// Hash of the current pose, velocity, mass, material and shape, used when two stable keys tie; never the object layer, whose index depends on the order layers were first used
 	uint32					ComputeTieKey() const;
 
 	/// Position of this body in the order bodies were added to the body manager, renumbered by BodyManager::ResetCreationOrder
