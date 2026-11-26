@@ -87,6 +87,7 @@ class JoltContactListener3D final
 	HashSet<JPH::SubShapeIDPair, ShapePairHasher> area_overlaps;
 	HashSet<JPH::SubShapeIDPair, ShapePairHasher> area_enters;
 	HashSet<JPH::SubShapeIDPair, ShapePairHasher> area_exits;
+	HashSet<JPH::SubShapeIDPair, ShapePairHasher> provisional_area_overlaps;
 	LocalVector<JPH::SubShapeIDPair> area_soft_body_overlaps;
 	Mutex write_mutex;
 	JoltSpace3D *space = nullptr;
@@ -125,6 +126,7 @@ class JoltContactListener3D final
 	void _flush_contacts();
 	void _flush_area_enters();
 	void _flush_area_exits();
+	void _expire_provisional_area_overlaps();
 	void _clear_area_soft_body_overlaps();
 
 public:
@@ -138,8 +140,12 @@ public:
 		area_overlaps.clear();
 		area_enters.clear();
 		area_exits.clear();
+		provisional_area_overlaps.clear();
 	}
-	void add_area_overlap(const JPH::SubShapeIDPair &p_shape_pair) { area_overlaps.insert(p_shape_pair); }
+	void add_area_overlap(const JPH::SubShapeIDPair &p_shape_pair) {
+		area_overlaps.insert(p_shape_pair);
+		provisional_area_overlaps.insert(p_shape_pair);
+	}
 	void clear_contacts() { manifolds_by_shape_pair.clear(); }
 
 #ifdef DEBUG_ENABLED

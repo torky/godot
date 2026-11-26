@@ -406,6 +406,8 @@ bool JoltContactListener3D::_has_shape_shifted(const JoltShapedObject3D &p_objec
 void JoltContactListener3D::_evaluate_area_overlap(const JoltArea3D &p_area, const JoltArea3D &p_other_area, const JPH::SubShapeIDPair &p_shape_pair) {
 	const MutexLock write_lock(write_mutex);
 
+	provisional_area_overlaps.erase(p_shape_pair);
+
 	if (p_area.can_monitor(p_other_area)) {
 		if (!area_overlaps.has(p_shape_pair)) {
 			area_overlaps.insert(p_shape_pair);
@@ -425,6 +427,8 @@ void JoltContactListener3D::_evaluate_area_overlap(const JoltArea3D &p_area, con
 
 void JoltContactListener3D::_evaluate_area_overlap(const JoltArea3D &p_area, const JoltBody3D &p_body, const JPH::SubShapeIDPair &p_shape_pair) {
 	const MutexLock write_lock(write_mutex);
+
+	provisional_area_overlaps.erase(p_shape_pair);
 
 	if (p_area.can_monitor(p_body)) {
 		if (!area_overlaps.has(p_shape_pair)) {
@@ -544,6 +548,26 @@ void JoltContactListener3D::_flush_area_exits() {
 	area_exits.clear();
 }
 
+void JoltContactListener3D::_expire_provisional_area_overlaps() {
+	if (provisional_area_overlaps.is_empty()) {
+		return;
+	}
+
+	int expired = 0;
+	for (const JPH::SubShapeIDPair &shape_pair : provisional_area_overlaps) {
+		if (area_overlaps.erase(shape_pair)) {
+			area_exits.insert(shape_pair);
+			expired++;
+		}
+	}
+
+	provisional_area_overlaps.clear();
+
+	if (expired > 0) {
+		print_line(vformat("Jolt canonicalize: exited %d area overlap(s) the first step after canonicalize did not report.", expired));
+	}
+}
+
 void JoltContactListener3D::_clear_area_soft_body_overlaps() {
 	area_exits.reserve(area_soft_body_overlaps.size());
 	for (const JPH::SubShapeIDPair &shape_pair : area_soft_body_overlaps) {
@@ -563,6 +587,7 @@ void JoltContactListener3D::pre_step() {
 
 void JoltContactListener3D::post_step() {
 	_flush_contacts();
+	_expire_provisional_area_overlaps();
 	_flush_area_exits();
 	_flush_area_enters();
 }
