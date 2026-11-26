@@ -90,6 +90,11 @@ class JoltSpace3D {
 	void _canonicalize_sleep();
 	int dump_keys_next_step = 0;
 	int dump_canonicalize_count = 0;
+	int steps_since_canonicalize = 0;
+	String step_dump_path;
+	int step_dump_first = -1;
+	int step_dump_last = -1;
+	void _step_dump(const char *p_phase) const;
 
 public:
 	explicit JoltSpace3D(JPH::JobSystem *p_job_system);

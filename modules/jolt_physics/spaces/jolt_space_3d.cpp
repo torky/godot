@@ -83,6 +83,9 @@ void JoltSpace3D::_pre_step(float p_step) {
 		object->commit_shapes(true);
 	}
 
+	steps_since_canonicalize++;
+	_step_dump("pre");
+
 	if (dump_keys_next_step > 0) {
 		_dump_stable_keys(vformat("%s.%d.%d.step%d.txt", OS::get_singleton()->get_environment("JOLT_STABLE_KEY_DUMP"), OS::get_singleton()->get_process_id(), dump_canonicalize_count, 3 - dump_keys_next_step));
 		dump_keys_next_step--;
@@ -103,6 +106,7 @@ void JoltSpace3D::_pre_step(float p_step) {
 
 void JoltSpace3D::_post_step(float p_step) {
 	contact_listener->post_step();
+	_step_dump("post");
 
 	while (shapes_changed_list.first()) {
 		JoltShapedObject3D *object = shapes_changed_list.first()->self();
@@ -118,6 +122,12 @@ JoltSpace3D::JoltSpace3D(JPH::JobSystem *p_job_system) :
 		contact_listener(new JoltContactListener3D(this)),
 		body_activation_listener(new JoltBodyActivationListener3D()),
 		physics_system(new JPH::PhysicsSystem()) {
+	step_dump_path = OS::get_singleton()->get_environment("JOLT_STEP_DUMP");
+	const String step_dump_range = OS::get_singleton()->get_environment("JOLT_STEP_DUMP_RANGE");
+	if (!step_dump_path.is_empty() && !step_dump_range.is_empty()) {
+		step_dump_first = step_dump_range.get_slicec('-', 0).to_int();
+		step_dump_last = step_dump_range.contains("-") ? step_dump_range.get_slicec('-', 1).to_int() : step_dump_first;
+	}
 	physics_system->Init((JPH::uint)JoltProjectSettings::max_bodies, 0, (JPH::uint)JoltProjectSettings::max_body_pairs, (JPH::uint)JoltProjectSettings::max_contact_constraints, *layers, *layers, *layers);
 
 	JPH::PhysicsSettings settings;
@@ -506,6 +516,7 @@ void JoltSpace3D::canonicalize() {
 		body_call_queries_list.remove(body_call_queries_list.first());
 	}
 
+	steps_since_canonicalize = 0;
 	physics_system->ResetStableKeys();
 	const uint32_t creation_order_ties = physics_system->ResetCreationOrder();
 	if (creation_order_ties > 0) {
@@ -810,6 +821,13 @@ static String _float_bits(float p_value) {
 	return String::num_uint64(bits, 16).lpad(8, "0");
 }
 
+void JoltSpace3D::_step_dump(const char *p_phase) const {
+	if (step_dump_first < 0 || steps_since_canonicalize < step_dump_first || steps_since_canonicalize > step_dump_last) {
+		return;
+	}
+	_dump_stable_keys(vformat("%s.%d.c%d.s%d.%s.txt", step_dump_path, OS::get_singleton()->get_process_id(), dump_canonicalize_count, steps_since_canonicalize, p_phase));
+}
+
 void JoltSpace3D::_dump_stable_keys(const String &p_path) const {
 	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::WRITE);
 	ERR_FAIL_COND(file.is_null());
@@ -839,6 +857,7 @@ void JoltSpace3D::_dump_stable_keys(const String &p_path) const {
 		const JPH::AABox b = body->GetShape()->GetLocalBounds();
 		String line = name + "\tkey=" + String::num_uint64(body->GetStableKey(), 16).lpad(8, "0");
 		line += "\tm=" + itos(int(body->GetMotionType())) + "\ts=" + itos(body->IsSensor() ? 1 : 0) + "\tco=" + String::num_uint64(body->GetCreationOrder());
+		line += "\tid=" + itos(int(id.GetIndex())) + "\tai=" + itos(int(body->IsActive() ? body->GetIndexInActiveBodiesInternal() : -1)) + "\ttie=" + String::num_uint64(body->ComputeTieKey(), 16);
 		line += "\tp=" + _float_bits(float(p.GetX())) + "," + _float_bits(float(p.GetY())) + "," + _float_bits(float(p.GetZ()));
 		line += "\tq=" + _float_bits(q.GetX()) + "," + _float_bits(q.GetY()) + "," + _float_bits(q.GetZ()) + "," + _float_bits(q.GetW());
 		if (object != nullptr && object->as_body() != nullptr && body->IsDynamic()) {
