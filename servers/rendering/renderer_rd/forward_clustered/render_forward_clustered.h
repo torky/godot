@@ -460,6 +460,7 @@ private:
 				uint32_t uses_projector : 1;
 				uint32_t uses_forward_gi : 1;
 				uint32_t uses_lightmap : 1;
+				uint32_t uses_dither : 1;
 			};
 			uint32_t value;
 		};
