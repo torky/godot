@@ -92,6 +92,7 @@ public:
 	virtual void instance_set_visible(RID p_instance, bool p_visible) = 0;
 	virtual void instance_geometry_set_transparency(RID p_instance, float p_transparency) = 0;
 	virtual void instance_geometry_set_transparency_dither(RID p_instance, bool p_enable) = 0;
+	virtual void instance_geometry_start_transparency_fade(RID p_instance, float p_duration_msec, bool p_fade_in, double p_start_msec) = 0;
 
 	virtual void instance_teleport(RID p_instance) = 0;
 

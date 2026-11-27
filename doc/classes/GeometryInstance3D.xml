@@ -28,6 +28,15 @@
 				[b]Note:[/b] Per-instance shader uniforms are only available in Spatial and CanvasItem shaders, but not for Fog, Sky, or Particles shaders.
 			</description>
 		</method>
+		<method name="start_transparency_fade">
+			<return type="void" />
+			<param index="0" name="duration_msec" type="float" />
+			<param index="1" name="fade_in" type="bool" />
+			<param index="2" name="start_msec" type="float" default="-1.0" />
+			<description>
+				Starts a timed screen-door dither fade computed by the renderer every frame, with no script updates. With [param fade_in], the instance goes from invisible to opaque over [param duration_msec] milliseconds; otherwise from opaque to invisible. [param start_msec] is on the [method Time.get_ticks_msec] clock; a negative value starts the fade the first time the instance is drawn. A [param duration_msec] of [code]0[/code] clears the fade. Only supported by the Forward+ renderer.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="cast_shadow" type="int" setter="set_cast_shadows_setting" getter="get_cast_shadows_setting" enum="GeometryInstance3D.ShadowCastingSetting" default="1">

@@ -258,6 +258,10 @@ bool GeometryInstance3D::is_transparency_dither() const {
 	return transparency_dither;
 }
 
+void GeometryInstance3D::start_transparency_fade(float p_duration_msec, bool p_fade_in, double p_start_msec) {
+	RS::get_singleton()->instance_geometry_start_transparency_fade(get_instance(), p_duration_msec, p_fade_in, p_start_msec);
+}
+
 void GeometryInstance3D::set_visibility_range_begin(float p_dist) {
 	visibility_range_begin = p_dist;
 	RS::get_singleton()->instance_geometry_set_visibility_range(get_instance(), visibility_range_begin, visibility_range_end, visibility_range_begin_margin, visibility_range_end_margin, (RSE::VisibilityRangeFadeMode)visibility_range_fade_mode);
@@ -571,6 +575,7 @@ void GeometryInstance3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_transparency"), &GeometryInstance3D::get_transparency);
 	ClassDB::bind_method(D_METHOD("set_transparency_dither", "enable"), &GeometryInstance3D::set_transparency_dither);
 	ClassDB::bind_method(D_METHOD("is_transparency_dither"), &GeometryInstance3D::is_transparency_dither);
+	ClassDB::bind_method(D_METHOD("start_transparency_fade", "duration_msec", "fade_in", "start_msec"), &GeometryInstance3D::start_transparency_fade, DEFVAL(-1.0));
 
 	ClassDB::bind_method(D_METHOD("set_visibility_range_end_margin", "distance"), &GeometryInstance3D::set_visibility_range_end_margin);
 	ClassDB::bind_method(D_METHOD("get_visibility_range_end_margin"), &GeometryInstance3D::get_visibility_range_end_margin);

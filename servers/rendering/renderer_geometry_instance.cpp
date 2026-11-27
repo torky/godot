@@ -114,6 +114,12 @@ void RenderGeometryInstanceBase::set_transparency_dither(bool p_enable) {
 	transparency_dither = p_enable;
 }
 
+void RenderGeometryInstanceBase::set_transparency_fade(double p_start_msec, float p_duration_msec, bool p_fade_in) {
+	transparency_fade_start = p_start_msec;
+	transparency_fade_duration = MAX(p_duration_msec, 0.0f);
+	transparency_fade_in = p_fade_in;
+}
+
 void RenderGeometryInstanceBase::set_use_baked_light(bool p_enable) {
 	data->use_baked_light = p_enable;
 

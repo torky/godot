@@ -459,6 +459,9 @@ public:
 		uint32_t visibility_dependencies_depth = 0;
 		float transparency = 0.0f;
 		bool transparency_dither = false;
+		double transparency_fade_start = -1.0;
+		float transparency_fade_duration = 0.0f;
+		bool transparency_fade_in = false;
 		Scenario *scenario = nullptr;
 		SelfList<Instance> scenario_item;
 
@@ -1036,6 +1039,7 @@ public:
 	virtual void instance_set_visible(RID p_instance, bool p_visible);
 	virtual void instance_geometry_set_transparency(RID p_instance, float p_transparency);
 	virtual void instance_geometry_set_transparency_dither(RID p_instance, bool p_enable);
+	virtual void instance_geometry_start_transparency_fade(RID p_instance, float p_duration_msec, bool p_fade_in, double p_start_msec);
 
 	virtual void instance_teleport(RID p_instance);
 

@@ -3222,6 +3222,7 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("instance_set_visible", "instance", "visible"), &RenderingServer::instance_set_visible);
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_transparency", "instance", "transparency"), &RenderingServer::instance_geometry_set_transparency);
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_transparency_dither", "instance", "enable"), &RenderingServer::instance_geometry_set_transparency_dither);
+	ClassDB::bind_method(D_METHOD("instance_geometry_start_transparency_fade", "instance", "duration_msec", "fade_in", "start_msec"), &RenderingServer::instance_geometry_start_transparency_fade, DEFVAL(-1.0));
 
 	ClassDB::bind_method(D_METHOD("instance_teleport", "instance"), &RenderingServer::instance_teleport);
 
