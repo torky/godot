@@ -162,6 +162,7 @@ public:
 
 	void set_transparency_dither(bool p_enable);
 	bool is_transparency_dither() const;
+	void start_transparency_fade(float p_duration_msec, bool p_fade_in, double p_start_msec = -1.0);
 
 	void set_visibility_range_begin(float p_dist);
 	float get_visibility_range_begin() const;

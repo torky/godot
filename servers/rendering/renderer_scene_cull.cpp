@@ -729,6 +729,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 				geom->geometry_instance->set_lod_bias(instance->lod_bias);
 				geom->geometry_instance->set_transparency(instance->transparency);
 				geom->geometry_instance->set_transparency_dither(instance->transparency_dither);
+				geom->geometry_instance->set_transparency_fade(instance->transparency_fade_start, instance->transparency_fade_duration, instance->transparency_fade_in);
 				geom->geometry_instance->set_use_baked_light(instance->baked_light);
 				geom->geometry_instance->set_use_dynamic_gi(instance->dynamic_gi);
 				geom->geometry_instance->set_use_lightmap(RID(), instance->lightmap_uv_scale, instance->lightmap_slice_index);
@@ -990,6 +991,21 @@ void RendererSceneCull::instance_geometry_set_transparency_dither(RID p_instance
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
 		ERR_FAIL_NULL(geom->geometry_instance);
 		geom->geometry_instance->set_transparency_dither(p_enable);
+	}
+}
+
+void RendererSceneCull::instance_geometry_start_transparency_fade(RID p_instance, float p_duration_msec, bool p_fade_in, double p_start_msec) {
+	Instance *instance = instance_owner.get_or_null(p_instance);
+	ERR_FAIL_NULL(instance);
+
+	instance->transparency_fade_start = p_start_msec;
+	instance->transparency_fade_duration = p_duration_msec;
+	instance->transparency_fade_in = p_fade_in;
+
+	if ((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK && instance->base_data) {
+		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
+		ERR_FAIL_NULL(geom->geometry_instance);
+		geom->geometry_instance->set_transparency_fade(p_start_msec, p_duration_msec, p_fade_in);
 	}
 }
 

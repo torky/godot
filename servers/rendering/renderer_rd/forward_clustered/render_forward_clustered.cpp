@@ -30,6 +30,7 @@
 
 #include "render_forward_clustered.h"
 #include "core/config/project_settings.h"
+#include "core/os/os.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
 #include "servers/rendering/renderer_rd/framebuffer_cache_rd.h"
 #include "servers/rendering/renderer_rd/storage_rd/light_storage.h"
@@ -421,7 +422,7 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 		pipeline_specialization.multimesh_format_2d = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D);
 		pipeline_specialization.multimesh_has_color = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_HAS_COLOR);
 		pipeline_specialization.multimesh_has_custom_data = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_HAS_CUSTOM_DATA);
-		pipeline_specialization.instance_dither = surf->owner->transparency_dither && (surf->owner->force_alpha * surf->owner->parent_fade_alpha < FADE_ALPHA_PASS_THRESHOLD || surf->owner->fade_near || surf->owner->fade_far);
+		pipeline_specialization.instance_dither = surf->owner->dither_active;
 
 		if constexpr (p_pass_mode == PASS_MODE_COLOR) {
 			pipeline_specialization.use_light_soft_shadows = element_info.uses_softshadow;
@@ -911,6 +912,7 @@ _FORCE_INLINE_ static uint32_t _indices_to_primitives(RS::PrimitiveType p_primit
 void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, const RenderDataRD *p_render_data, PassMode p_pass_mode, bool p_using_sdfgi, bool p_using_opaque_gi, bool p_using_motion_pass, bool p_append) {
 	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
 	uint64_t frame = RSG::rasterizer->get_frame_number();
+	const double now_msec = double(OS::get_singleton()->get_ticks_msec());
 
 	if (p_render_list == RENDER_LIST_OPAQUE) {
 		scene_state.used_sss = false;
@@ -978,6 +980,15 @@ void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, con
 		}
 
 		fade_alpha *= inst->force_alpha * inst->parent_fade_alpha;
+
+		if (inst->transparency_fade_duration > 0.0f) {
+			if (inst->transparency_fade_start < 0.0) {
+				inst->transparency_fade_start = now_msec;
+			}
+			float fade_t = CLAMP(float((now_msec - inst->transparency_fade_start) / double(inst->transparency_fade_duration)), 0.0f, 1.0f);
+			fade_alpha *= inst->transparency_fade_in ? fade_t : 1.0f - fade_t;
+		}
+		inst->dither_active = inst->uses_transparency_dither() && fade_alpha < FADE_ALPHA_PASS_THRESHOLD;
 
 		flags = (flags & ~INSTANCE_DATA_FLAGS_FADE_MASK) | (uint32_t(fade_alpha * 255.0) << INSTANCE_DATA_FLAGS_FADE_SHIFT);
 
@@ -1126,7 +1137,7 @@ void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, con
 				bool force_alpha = false;
 #endif
 
-				if (fade_alpha < FADE_ALPHA_PASS_THRESHOLD && !inst->transparency_dither) {
+				if (fade_alpha < FADE_ALPHA_PASS_THRESHOLD && !inst->uses_transparency_dither()) {
 					force_alpha = true;
 				}
 
@@ -4708,7 +4719,7 @@ void RenderForwardClustered::_mesh_compile_pipelines_for_surface(const SurfacePi
 void RenderForwardClustered::_mesh_generate_all_pipelines_for_surface_cache(GeometryInstanceSurfaceDataCache *p_surface_cache, const GlobalPipelineData &p_global) {
 	bool uses_alpha_pass = (p_surface_cache->flags & GeometryInstanceSurfaceDataCache::FLAG_PASS_ALPHA) != 0;
 	float multiplied_fade_alpha = p_surface_cache->owner->force_alpha * p_surface_cache->owner->parent_fade_alpha;
-	bool uses_fade = !p_surface_cache->owner->transparency_dither && ((multiplied_fade_alpha < FADE_ALPHA_PASS_THRESHOLD) || p_surface_cache->owner->fade_near || p_surface_cache->owner->fade_far);
+	bool uses_fade = !p_surface_cache->owner->uses_transparency_dither() && ((multiplied_fade_alpha < FADE_ALPHA_PASS_THRESHOLD) || p_surface_cache->owner->fade_near || p_surface_cache->owner->fade_far);
 	SurfacePipelineData surface;
 	surface.mesh_surface = p_surface_cache->surface;
 	surface.mesh_surface_shadow = p_surface_cache->surface_shadow;

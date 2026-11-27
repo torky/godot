@@ -55,6 +55,7 @@ public:
 	virtual void set_parent_fade_alpha(float p_alpha) = 0;
 	virtual void set_transparency(float p_transparency) = 0;
 	virtual void set_transparency_dither(bool p_enable) = 0;
+	virtual void set_transparency_fade(double p_start_msec, float p_duration_msec, bool p_fade_in) = 0;
 	virtual void set_use_baked_light(bool p_enable) = 0;
 	virtual void set_use_dynamic_gi(bool p_enable) = 0;
 	virtual void set_use_lightmap(RID p_lightmap_instance, const Rect2 &p_lightmap_uv_scale, int p_lightmap_slice_index) = 0;
@@ -108,6 +109,12 @@ public:
 	float parent_fade_alpha = 1.0;
 	float force_alpha = 1.0;
 	bool transparency_dither = false;
+	double transparency_fade_start = -1.0;
+	float transparency_fade_duration = 0.0;
+	bool transparency_fade_in = false;
+	bool dither_active = false;
+
+	_FORCE_INLINE_ bool uses_transparency_dither() const { return transparency_dither || transparency_fade_duration > 0.0f; }
 
 	int32_t shader_uniforms_offset = -1;
 
@@ -145,6 +152,7 @@ public:
 	virtual void set_parent_fade_alpha(float p_alpha) override;
 	virtual void set_transparency(float p_transparency) override;
 	virtual void set_transparency_dither(bool p_enable) override;
+	virtual void set_transparency_fade(double p_start_msec, float p_duration_msec, bool p_fade_in) override;
 	virtual void set_use_baked_light(bool p_enable) override;
 	virtual void set_use_dynamic_gi(bool p_enable) override;
 	virtual void set_instance_shader_uniforms_offset(int32_t p_offset) override;

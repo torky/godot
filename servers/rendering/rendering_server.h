@@ -1513,6 +1513,7 @@ public:
 	virtual void instance_geometry_set_lod_bias(RID p_instance, float p_lod_bias) = 0;
 	virtual void instance_geometry_set_transparency(RID p_instance, float p_transparency) = 0;
 	virtual void instance_geometry_set_transparency_dither(RID p_instance, bool p_enable) = 0;
+	virtual void instance_geometry_start_transparency_fade(RID p_instance, float p_duration_msec, bool p_fade_in, double p_start_msec = -1.0) = 0;
 
 	virtual void instance_geometry_set_shader_parameter(RID p_instance, const StringName &, const Variant &p_value) = 0;
 	virtual Variant instance_geometry_get_shader_parameter(RID p_instance, const StringName &) const = 0;
