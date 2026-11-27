@@ -421,6 +421,7 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 		pipeline_specialization.multimesh_format_2d = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D);
 		pipeline_specialization.multimesh_has_color = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_HAS_COLOR);
 		pipeline_specialization.multimesh_has_custom_data = bool(surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH_HAS_CUSTOM_DATA);
+		pipeline_specialization.instance_dither = surf->owner->transparency_dither && (surf->owner->force_alpha * surf->owner->parent_fade_alpha < FADE_ALPHA_PASS_THRESHOLD || surf->owner->fade_near || surf->owner->fade_far);
 
 		if constexpr (p_pass_mode == PASS_MODE_COLOR) {
 			pipeline_specialization.use_light_soft_shadows = element_info.uses_softshadow;
@@ -1125,7 +1126,7 @@ void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, con
 				bool force_alpha = false;
 #endif
 
-				if (fade_alpha < FADE_ALPHA_PASS_THRESHOLD) {
+				if (fade_alpha < FADE_ALPHA_PASS_THRESHOLD && !inst->transparency_dither) {
 					force_alpha = true;
 				}
 
@@ -4707,7 +4708,7 @@ void RenderForwardClustered::_mesh_compile_pipelines_for_surface(const SurfacePi
 void RenderForwardClustered::_mesh_generate_all_pipelines_for_surface_cache(GeometryInstanceSurfaceDataCache *p_surface_cache, const GlobalPipelineData &p_global) {
 	bool uses_alpha_pass = (p_surface_cache->flags & GeometryInstanceSurfaceDataCache::FLAG_PASS_ALPHA) != 0;
 	float multiplied_fade_alpha = p_surface_cache->owner->force_alpha * p_surface_cache->owner->parent_fade_alpha;
-	bool uses_fade = (multiplied_fade_alpha < FADE_ALPHA_PASS_THRESHOLD) || p_surface_cache->owner->fade_near || p_surface_cache->owner->fade_far;
+	bool uses_fade = !p_surface_cache->owner->transparency_dither && ((multiplied_fade_alpha < FADE_ALPHA_PASS_THRESHOLD) || p_surface_cache->owner->fade_near || p_surface_cache->owner->fade_far);
 	SurfacePipelineData surface;
 	surface.mesh_surface = p_surface_cache->surface;
 	surface.mesh_surface_shadow = p_surface_cache->surface_shadow;

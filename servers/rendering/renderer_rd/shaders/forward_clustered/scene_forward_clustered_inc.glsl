@@ -138,6 +138,20 @@ bool sc_multimesh_has_custom_data() {
 	return ((sc_packed_1() >> 3) & 1U) != 0;
 }
 
+bool sc_instance_dither() {
+	return ((sc_packed_1() >> 4) & 1U) != 0;
+}
+
+float instance_dither_threshold(vec2 frag_coord) {
+	const float bayer[16] = float[16](
+			0.0, 8.0, 2.0, 10.0,
+			12.0, 4.0, 14.0, 6.0,
+			3.0, 11.0, 1.0, 9.0,
+			15.0, 7.0, 13.0, 5.0);
+	ivec2 p = ivec2(frag_coord) & ivec2(3);
+	return (bayer[p.y * 4 + p.x] + 0.5) / 16.0;
+}
+
 float sc_luminance_multiplier() {
 	// Not used in clustered renderer but we share some code with the mobile renderer that requires this.
 	return 1.0;

@@ -1239,6 +1239,12 @@ void fragment_shader(in SceneData scene_data) {
 	float ao_light_affect = 0.0;
 
 	float alpha_highp = float(instances.data[instance_index].flags >> INSTANCE_FLAGS_FADE_SHIFT) / float(255.0);
+	if (sc_instance_dither()) {
+		if (alpha_highp < instance_dither_threshold(gl_FragCoord.xy)) {
+			discard;
+		}
+		alpha_highp = 1.0;
+	}
 
 #ifdef TANGENT_USED
 	vec3 binormal = binormal_interp;
