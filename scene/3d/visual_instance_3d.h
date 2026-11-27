@@ -132,6 +132,7 @@ private:
 	VisibilityRangeFadeMode visibility_range_fade_mode = VISIBILITY_RANGE_FADE_DISABLED;
 
 	float transparency = 0.0f;
+	bool transparency_dither = false;
 
 	float lod_bias = 1.0;
 
@@ -160,6 +161,9 @@ public:
 
 	void set_transparency(float p_transparency);
 	float get_transparency() const;
+
+	void set_transparency_dither(bool p_enable);
+	bool is_transparency_dither() const;
 
 	void set_visibility_range_begin(float p_dist);
 	float get_visibility_range_begin() const;

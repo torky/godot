@@ -110,6 +110,10 @@ void RenderGeometryInstanceBase::set_transparency(float p_transparency) {
 	force_alpha = CLAMP(1.0 - p_transparency, 0, 1);
 }
 
+void RenderGeometryInstanceBase::set_transparency_dither(bool p_enable) {
+	transparency_dither = p_enable;
+}
+
 void RenderGeometryInstanceBase::set_use_baked_light(bool p_enable) {
 	data->use_baked_light = p_enable;
 

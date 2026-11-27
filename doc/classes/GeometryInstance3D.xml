@@ -72,6 +72,10 @@
 			[b]Note:[/b] [member transparency] is clamped between [code]0.0[/code] and [code]1.0[/code], so this property cannot be used to make transparent materials more opaque than they originally are.
 			[b]Note:[/b] Only supported when using the Forward+ rendering method. When using the Mobile or Compatibility rendering method, [member transparency] is ignored and is considered as always being [code]0.0[/code].
 		</member>
+		<member name="transparency_dither" type="bool" setter="set_transparency_dither" getter="is_transparency_dither" default="false">
+			If [code]true[/code], [member transparency] and the visibility range fade are applied as a screen-door dither (per-pixel discard) instead of alpha blending. The geometry stays in the opaque, depth and shadow passes, so it works with every material, keeps correct sorting and its shadow fades with it.
+			[b]Note:[/b] Only supported when using the Forward+ rendering method.
+		</member>
 		<member name="visibility_range_begin" type="float" setter="set_visibility_range_begin" getter="get_visibility_range_begin" default="0.0" keywords="lod_begin, hlod_begin">
 			Starting distance from which the GeometryInstance3D will be visible, taking [member visibility_range_begin_margin] into account as well. The default value of 0 is used to disable the range check.
 		</member>
